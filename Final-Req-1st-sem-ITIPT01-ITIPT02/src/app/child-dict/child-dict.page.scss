@@ -1,0 +1,138 @@
+.directory-background {
+  --background: #f8fafc;
+}
+
+.directory-wrapper {
+  max-width: 600px;
+  margin: 0 auto;
+  padding-bottom: 2rem;
+}
+
+.filter-toolbar {
+  --background: #ffffff;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid #e2e8f0;
+
+  .search-filter-container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+
+    .custom-search {
+      flex: 1;
+      --box-shadow: none;
+      --background: #f1f5f9;
+      --color: #0f172a;
+      --placeholder-color: #64748b;
+      --icon-color: #64748b;
+      --clear-button-color: #64748b;
+      --border-radius: 12px;
+      padding: 0;
+      height: 40px;
+    }
+
+    .filter-item {
+      flex: 0 0 130px;
+      --background: #f1f5f9;
+      --border-radius: 12px;
+      border-radius: 15px;
+      height: 40px;
+      min-height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding-inline-start: 0;
+
+      ion-select {
+        width: 100%;
+        color: #010203;
+        font-size: 0.85rem;
+        font-weight: 500;
+        text-align: center;
+        max-width: 100%;
+        --padding-start: 0px;
+        --padding-end: 0px;
+      }
+    }
+  }
+}
+
+.sliding-list {
+  background: transparent;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+
+  .sliding-item-wrapper {
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+
+    .child-card-item {
+      --background: #ffffff;
+      --padding-start: 12px;
+      --padding-end: 12px;
+      padding: 0.5rem 0;
+
+      .child-card-content {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+
+        .child-avatar {
+          width: 40px;
+          height: 40px;
+          background: rgba(16, 185, 129, 0.1);
+          border-radius: 10px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+
+          ion-icon {
+            font-size: 20px;
+          }
+        }
+
+        .child-details {
+          flex: 1;
+
+          h3 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #0f172a;
+            margin: 0;
+          }
+
+          p {
+            font-size: 0.75rem;
+            color: #64748b;
+            margin: 0.1rem 0;
+
+            &.metrics-text {
+              color: #334155;
+            }
+          }
+        }
+
+        .status-container {
+          ion-badge {
+            font-size: 0.65rem;
+            padding: 6px 10px;
+            border-radius: 6px;
+            min-width: 135px;           
+            text-align: center;         
+            display: inline-block;
+            font-weight: 600;
+          }
+        }
+      }
+    }
+  }
+}
