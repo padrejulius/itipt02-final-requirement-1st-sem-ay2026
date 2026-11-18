@@ -1,0 +1,82 @@
+<ion-header [translucent]="true">
+  <ion-toolbar color="success">
+    <ion-buttons slot="start">
+      <ion-button (click)="goBack()">
+        <ion-icon slot="icon-only" name="arrow-back-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>Child Directory</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="addChild()">
+        <ion-icon slot="icon-only" name="person-add-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+
+  <!-- Searchbar and Filter Toolbar -->
+  <ion-toolbar color="light" class="filter-toolbar">
+    <div class="search-filter-container">
+      <ion-searchbar [(ngModel)]="searchTerm" (ionInput)="applyFilter()" placeholder="Search child name..." class="custom-search"></ion-searchbar>
+      
+      <ion-item class="filter-item" lines="none">
+        <ion-select [(ngModel)]="selectedPurok" (ionChange)="applyFilter()" placeholder="All Puroks" interface="popover">
+          <ion-select-option value="">All Puroks</ion-select-option>
+          <ion-select-option value="Purok 1">Purok 1</ion-select-option>
+          <ion-select-option value="Purok 2">Purok 2</ion-select-option>
+          <ion-select-option value="Purok 3">Purok 3</ion-select-option>
+          <ion-select-option value="Purok 4">Purok 4</ion-select-option>
+          <ion-select-option value="Purok 5">Purok 5</ion-select-option>
+        </ion-select>
+      </ion-item>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding directory-background">
+  <div class="directory-wrapper">
+    
+    <!-- Children Sliding List -->
+    <ion-list lines="none" class="sliding-list">
+      <ion-item-sliding *ngFor="let child of filteredChildren" class="sliding-item-wrapper">
+        
+        <!-- Dinagdagan lang natin ng click at long-press events dito nang hindi binabago ang loob -->
+        <ion-item class="child-card-item" 
+                  (click)="onItemClick(child)"
+                  (mousedown)="startLongPress(child)"
+                  (mouseup)="cancelLongPress()"
+                  (mouseleave)="cancelLongPress()"
+                  (touchstart)="startLongPress(child)"
+                  (touchend)="cancelLongPress()">
+          <div class="child-card-content">
+            <div class="child-avatar">
+              <ion-icon name="person-outline" color="success"></ion-icon>
+            </div>
+            <div class="child-details">
+              <h3>{{ child.fullName }}</h3>
+              <p>Age: {{ child.ageMonths }} years old | <strong>{{ child.purok }}</strong></p>
+              <p class="metrics-text">Wt: {{ child.weightKg }} kg | Ht: {{ child.heightCm }} cm</p>
+            </div>
+            <div class="status-container">
+              <ion-badge [color]="getStatusBadgeColor(child.nutritionalStatus)">
+                {{ child.nutritionalStatus }}
+              </ion-badge>
+            </div>
+          </div>
+        </ion-item>
+
+        <!-- Sliding Options (Edit & Delete) - Functional pa rin -->
+        <ion-item-options side="end">
+          <ion-item-option color="primary" (click)="editChild(child)">
+            <ion-icon slot="icon-only" name="create-outline"></ion-icon>
+          </ion-item-option>
+          
+          <ion-item-option color="danger" (click)="confirmDelete(child)">
+            <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+          </ion-item-option>
+        </ion-item-options>
+
+      </ion-item-sliding>
+    </ion-list>
+
+  </div>
+</ion-content>

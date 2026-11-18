@@ -46,4 +46,8 @@ export const routes: Routes = [
     path: 'settings',
     loadComponent: () => import('./settings/settings.page').then((m) => m.SettingsPage),
   },
+  {
+    path: 'child-dict',
+    loadComponent: () => import('./child-dict/child-dict.page').then((m) => m.ChildDictPage),
+  },
 ];
