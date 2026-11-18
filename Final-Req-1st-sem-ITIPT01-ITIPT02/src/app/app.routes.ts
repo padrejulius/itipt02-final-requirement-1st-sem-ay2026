@@ -30,12 +30,6 @@ export const routes: Routes = [
     path: 'vaccine-sched',
     loadComponent: () => import('./vaccine-sched/vaccine-sched.page').then((m) => m.VaccineSchedPage),
   },
-  {
-    path: 'settings',
-    loadComponent: () => import('./settings/settings.page').then((m) => m.SettingsPage),
-  },
-  {
-    path: 'archive',
-    loadComponent: () => import('./archive/archive.page').then((m) => m.ArchivePage),
+  { main
   },
 ];
