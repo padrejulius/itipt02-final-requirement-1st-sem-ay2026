@@ -39,12 +39,12 @@ export class AddChildPage implements OnInit {
     name: '',
     dob: '',
     gender: '',
-    age: 0,
+    age: null,
     guardian: '',
     contact: '',
     purok: '',
-    weight: 0,
-    height: 0,
+    weight: null,
+    height: null,
     nutritionalStatus: ''
   };
 
