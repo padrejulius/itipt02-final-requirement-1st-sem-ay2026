@@ -32,13 +32,11 @@ export class SettingsPage implements OnInit {
   }
 
   ngOnInit(): void {
-    // Kukunin ang na-save na dark mode setting kapag binuksan ang pahina
     const savedDarkMode = localStorage.getItem('nutribantay_dark_mode') === 'true';
     this.darkMode = savedDarkMode;
     document.body.classList.toggle('dark', savedDarkMode);
   }
 
-  // Pinapagana at tinitiyak na naka-save ang Dark Mode setting sa localStorage
   toggleDarkMode(event: any): void {
     const checked = event.detail.checked;
     this.darkMode = checked;
@@ -46,7 +44,6 @@ export class SettingsPage implements OnInit {
     localStorage.setItem('nutribantay_dark_mode', checked.toString());
   }
 
-  // Safe Logout na may Confirmation Alert bago lumabas ng account
   async confirmLogout(): Promise<void> {
     const alert = await this.alertController.create({
       header: 'Confirm Logout',
