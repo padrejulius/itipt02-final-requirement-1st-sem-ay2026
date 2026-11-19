@@ -1,0 +1,193 @@
+.feeding-background {
+  --background: #f8fafc;
+}
+
+.feeding-wrapper {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 0.5rem 0;
+}
+
+.page-header {
+  margin-bottom: 1.25rem;
+  text-align: center;
+
+  h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+  }
+
+  p {
+    font-size: 0.85rem;
+    color: #64748b;
+    margin-top: 0.25rem;
+  }
+}
+
+.child-list {
+  background: transparent;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+
+  .child-item {
+    --background: #ffffff;
+    --border-radius: 16px;
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    padding: 0.5rem 0;
+
+    .child-card-content {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      padding: 0.5rem;
+
+      .child-info {
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+
+        .avatar-box {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 44px;
+          height: 44px;
+          background: rgba(245, 158, 11, 0.1);
+          border-radius: 12px;
+          flex-shrink: 0;
+
+          ion-icon {
+            font-size: 24px;
+          }
+        }
+
+        h3 {
+          font-size: 1rem;
+          font-weight: 600;
+          color: #0f172a;
+          margin: 0;
+        }
+
+        p {
+          font-size: 0.8rem;
+          color: #64748b;
+          margin: 0.2rem 0;
+
+          &.metrics {
+            color: #334155;
+          }
+        }
+
+        .status-badge {
+          margin-top: 0.25rem;
+          font-size: 0.7rem;
+          min-width: 135px;       
+          text-align: center; 
+        }
+      }
+
+      /* ==========================================
+         PARENT CONTACT SECTION - LIGHT MODE
+         ========================================== */
+      .contact-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #f1f5f9; 
+        padding: 0.5rem 0.75rem;
+        border-radius: 10px;
+        margin-top: 0.25rem;
+
+        .parent-info {
+          font-size: 0.8rem;
+          color: #334155; 
+          margin: 0;
+          display: flex;
+          align-items: center;
+          gap: 4px;
+
+          ion-icon {
+            font-size: 14px;
+            color: #64748b;
+          }
+        }
+
+        .call-btn {
+          --border-radius: 8px;
+          font-size: 0.8rem;
+          font-weight: 600;
+          height: 32px;
+          margin: 0;
+        }
+      }
+    }
+  }
+}
+
+/* ==========================================
+   FLEXIBLE DARK MODE OVERRIDES (body.dark)
+   ========================================== */
+body.dark {
+  .feeding-background {
+    --background: #0f172a !important;
+    background: #0f172a !important;
+  }
+
+  .page-header {
+    h2 {
+      color: #f8fafc !important;
+    }
+    p {
+      color: #94a3b8 !important;
+    }
+  }
+
+  .child-list {
+    .child-item {
+      --background: #1e293b !important;
+      background: #1e293b !important;
+      border: 1px solid #334155 !important;
+      box-shadow: none !important;
+
+      &::part(native) {
+        background: #1e293b !important;
+      }
+
+      .child-card-content {
+        .child-info {
+          h3 {
+            color: #f8fafc !important;
+          }
+          p {
+            color: #94a3b8 !important;
+
+            &.metrics {
+              color: #cbd5e1 !important;
+            }
+          }
+        }
+
+        /* Parent contact section sa Dark Mode - Ginaya ang eksaktong kulay ng search bar background (#1e293b)[cite: 3] */
+        .contact-section {
+          background-color: #0f172a !important; 
+          background: #0f172a !important;
+          border: 1px solid #334155 !important;
+
+          .parent-info {
+            color: #f8fafc !important; 
+
+            ion-icon {
+              color: #94a3b8 !important;
+            }
+          }
+        }
+      }
+    }
+  }
+}

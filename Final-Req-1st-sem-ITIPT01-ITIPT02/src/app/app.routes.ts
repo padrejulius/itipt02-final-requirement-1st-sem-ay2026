@@ -54,4 +54,8 @@ export const routes: Routes = [
     path: 'fully-immunized',
     loadComponent: () => import('./fully-immunized/fully-immunized.page').then((m) => m.FullyImmunizedPage),
   },
+  {
+    path: 'feeding-list',
+    loadComponent: () => import('./feeding-list/feeding-list.page').then((m) => m.FeedingListPage),
+  },
 ];
