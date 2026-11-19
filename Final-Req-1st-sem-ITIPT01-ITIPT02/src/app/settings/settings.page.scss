@@ -58,7 +58,6 @@
   }
 }
 
-/* Section Headings & Lists */
 .section-container {
   h4 {
     font-size: 0.9rem;
@@ -69,20 +68,19 @@
     letter-spacing: 0.5px;
   }
 
-  /* Direkta na rito sa ilalim ng .section-container (wala na sa loob ng .settings-list) */
   .setting-item {
     border-radius: 12px !important;
-    margin-bottom: 10px !important; /* I-adjust mo ito (hal. 8px, 10px, o 12px) depende sa gusto mong gap */
+    margin-bottom: 10px !important; 
     overflow: hidden;
 
     &:last-child {
-      margin-bottom: 0 !important; /* Para walang sobrang space sa pinakababa */
+      margin-bottom: 0 !important;
     }
 
     ion-icon {
       font-size: 20px;
       margin-right: 12px;
-      color: #475569;
+      color: #0669f5;
     }
 
     ion-label {
@@ -92,7 +90,6 @@
 }
 
 
-/* About Card Styling */
 .about-card {
   background: #ffffff;
   border-radius: 16px;

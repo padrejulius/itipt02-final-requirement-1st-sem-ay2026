@@ -15,7 +15,7 @@ import { arrowBackOutline, personCircleOutline, archiveOutline, locationOutline,
 export class SettingsPage implements OnInit {
   healthWorkerName: string = 'Administrator';
   assignedStation: string = 'Barangay Health Station';
-  darkMode: boolean = false;
+  darkMode: boolean = localStorage.getItem('darkMode') === 'true';
   notifications: boolean = true;
 
   constructor(private router: Router, private alertController: AlertController) {
@@ -31,17 +31,27 @@ export class SettingsPage implements OnInit {
     });
   }
 
+  onDarkModeChange(event: any): void {
+    const isDark = Boolean(event?.detail?.checked);
+    this.darkMode = isDark;
+    this.applyDarkMode(isDark);
+  }
+
+  applyDarkMode(isDark: boolean): void {
+    localStorage.setItem('darkMode', String(isDark));
+    document.body.classList.toggle('dark', isDark);
+  }
+
   ngOnInit(): void {
-    const savedDarkMode = localStorage.getItem('nutribantay_dark_mode') === 'true';
+    const savedDarkMode = localStorage.getItem('darkMode') === 'true';
     this.darkMode = savedDarkMode;
     document.body.classList.toggle('dark', savedDarkMode);
   }
 
   toggleDarkMode(event: any): void {
-    const checked = event.detail.checked;
+    const checked = Boolean(event?.detail?.checked);
     this.darkMode = checked;
-    document.body.classList.toggle('dark', checked);
-    localStorage.setItem('nutribantay_dark_mode', checked.toString());
+    this.applyDarkMode(checked);
   }
 
   async confirmLogout(): Promise<void> {

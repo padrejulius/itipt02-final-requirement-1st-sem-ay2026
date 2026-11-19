@@ -8,4 +8,10 @@ import { IonApp, IonRouterOutlet } from '@ionic/angular';
 })
 export class AppComponent {
   constructor() {}
+
+  ngOnInit(): void {
+    const savedDarkMode = localStorage.getItem('darkMode') === 'true';
+    document.body.classList.toggle('dark', savedDarkMode);
+  }
+  
 }
