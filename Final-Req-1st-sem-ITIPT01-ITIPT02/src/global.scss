@@ -35,3 +35,241 @@
 /* @import "@ionic/angular/css/palettes/dark.always.css"; */
 /* @import "@ionic/angular/css/palettes/dark.class.css"; */
 @import '@ionic/angular/css/palettes/dark.system.css';
+
+
+
+/* ------------------------------------------------
+   1. DEFAULT LIGHT MODE (Kapag Off ang Dark Mode)
+   ------------------------------------------------
+*/
+:root, body {
+  --ion-background-color: #f8fafc !important;
+  --ion-background-color-rgb: 248, 250, 252 !important;
+  --ion-text-color: #0f172a !important;
+  --ion-text-color-rgb: 15, 23, 42 !important;
+  --ion-item-background: #ffffff !important;
+  --ion-card-background: #ffffff !important;
+}
+
+ion-content,
+.auth-background,
+.add-child-background,
+.dashboard-background {
+  --background: #f8fafc !important;
+  background: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+.login-wrapper,
+.register-wrapper,
+.form-wrapper {
+  background: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+ion-searchbar {
+  --background: #ffffff !important;
+  --color: #0f172a !important;
+  --placeholder-color: #64748b !important;
+  --icon-color: #64748b !important;
+  --clear-button-color: #64748b !important;
+  --border-radius: 12px !important;
+  padding: 0 !important;
+}
+
+.rounded-item,
+.custom-input,
+ion-item {
+  --background: #ffffff !important;
+  --color: #0f172a !important;
+  --border-radius: 12px !important;
+  border-radius: 12px !important;
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border: 1px solid #cbd5e1 !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+  overflow: hidden !important;
+
+  &::part(native) {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    border-radius: 12px !important;
+  }
+}
+
+ion-card {
+  --background: #ffffff !important;
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 12px !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05) !important;
+
+  ion-card-title, ion-card-subtitle, p, strong {
+    color: #0f172a !important;
+  }
+}
+
+ion-input,
+ion-select,
+ion-textarea {
+  --color: #0f172a !important;
+  --placeholder-color: #64748b !important;
+  color: #0f172a !important;
+}
+
+h1, h2, h3, h4, h5, h6, .app-title {
+  color: #0f172a !important;
+}
+
+.app-subtitle, p, span {
+  color: #64748b !important;
+}
+
+
+/* ------------------------------------------
+   2. DARK MODE OVERRIDES (`body.dark`)
+   ------------------------------------------ 
+*/
+body.dark {
+  --ion-background-color: #0f172a !important;
+  --ion-background-color-rgb: 15, 23, 42 !important;
+  --ion-text-color: #f8fafc !important;
+  --ion-text-color-rgb: 248, 250, 252 !important;
+  --ion-item-background: #1e293b !important;
+  --ion-card-background: #1e293b !important;
+
+  ion-content,
+  .auth-background,
+  .add-child-background,
+  .dashboard-background,
+  .directory-background,
+  .feeding-background,
+  .settings-background,
+  .immunized-background {
+    --background: #0f172a !important;
+    background: #0f172a !important;
+    color: #f8fafc !important;
+  }
+
+  .login-wrapper,
+  .register-wrapper,
+  .form-wrapper {
+    background: #0f172a !important;
+    color: #f8fafc !important;
+  }
+
+  ion-searchbar {
+    --background: #1e293b !important;
+    --color: #f8fafc !important;
+    --placeholder-color: #94a3b8 !important;
+    --icon-color: #94a3b8 !important;
+    --clear-button-color: #94a3b8 !important;
+  }
+
+  .rounded-item,
+  .custom-input {
+    --background: #1e293b !important;
+    --color: #f8fafc !important;
+    background: #1e293b !important;
+    color: #f8fafc !important;
+    border: 1px solid #334155 !important;
+
+    &::part(native) {
+      background: #1e293b !important;
+      color: #f8fafc !important;
+    }
+  }
+
+  .profile-card,
+  .about-card,
+  .section-container .settings-list,
+  .child-card-item,
+  .child-item,
+  .stat-card,
+  .welcome-section,
+  .form-card,
+  .info-card,
+  .setting-item,
+  ion-item,
+  ion-card {
+    background: #1e293b !important;
+    --background: #1e293b !important;
+    color: #f8fafc !important;
+    --color: #f8fafc !important;
+    border: 1px solid #334155 !important;
+    box-shadow: none !important;
+
+    &::part(native) {
+      background: #1e293b !important;
+      color: #f8fafc !important;
+      border-color: #334155 !important;
+    }
+  }
+
+  ion-card-title, ion-card-subtitle, strong {
+    color: #f8fafc !important;
+  }
+
+  ion-input,
+  ion-select,
+  ion-textarea {
+    --color: #f8fafc !important;
+    --placeholder-color: #94a3b8 !important;
+    color: #f8fafc !important;
+  }
+
+  ion-label {
+    color: #f8fafc !important;
+    p {
+      color: #94a3b8 !important;
+    }
+  }
+
+  h1, h2, h3, h4, h5, h6,
+  .profile-info h3,
+  .about-details h5,
+  .child-details h3,
+  .child-name,
+  .page-subtitle,
+  .app-title {
+    color: #f8fafc !important;
+  }
+
+  p, span, .role-text, .metrics-text, .parent-info, .sub-text, .subtitle, .description-text, .app-subtitle {
+    color: #94a3b8 !important;
+  }
+
+  .filter-toolbar {
+    --background: #1e293b !important;
+    background: #1e293b !important;
+    border-bottom: 1px solid #334155;
+
+    .custom-search {
+      --background: #334155 !important;
+      --color: #f8fafc !important;
+      --placeholder-color: #94a3b8 !important;
+      --icon-color: #94a3b8 !important;
+    }
+
+    .filter-item {
+      --background: #334155 !important;
+
+      ion-select {
+        color: #f8fafc !important;
+      }
+    }
+  }
+
+  .welcome-section {
+    .user-info {
+      h2 { color: #f8fafc !important; }
+      p { color: #94a3b8 !important; }
+    }
+    .avatar-badge ion-icon { color: #94a3b8 !important; }
+  }
+
+  .station-text { color: #cbd5e1 !important; }
+  .version-tag { background: #334155 !important; color: #cbd5e1 !important; }
+}
+

@@ -75,16 +75,14 @@ export class ArchiveSchedulePage implements OnInit {
       state: { 
         scheduleData: schedule, 
         scheduleId: schedule.id,
-        isViewOnly: true  // <--- Nagtatakda na Old Schedule / Read-only ito
+        isViewOnly: true 
       }
     });
   }
 
 async restoreSchedule(scheduleOrEvent: any, maybeSchedule?: any) {
-    // Alamin kung alin ang schedule object sa kanila
+
     const schedule = maybeSchedule ? maybeSchedule : scheduleOrEvent;
-    
-    // Kung may event, i-stop ang propagation para hindi bumukas ang form
     if (scheduleOrEvent && typeof scheduleOrEvent.stopPropagation === 'function') {
       scheduleOrEvent.stopPropagation();
     }
