@@ -50,4 +50,8 @@ export const routes: Routes = [
     path: 'child-dict',
     loadComponent: () => import('./child-dict/child-dict.page').then((m) => m.ChildDictPage),
   },
+  {
+    path: 'fully-immunized',
+    loadComponent: () => import('./fully-immunized/fully-immunized.page').then((m) => m.FullyImmunizedPage),
+  },
 ];

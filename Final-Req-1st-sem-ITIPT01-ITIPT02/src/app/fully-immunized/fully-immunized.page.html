@@ -1,0 +1,43 @@
+<ion-header [translucent]="true">
+  <ion-toolbar color="success">
+    <ion-buttons slot="start">
+      <ion-button (click)="goBack()">
+        <ion-icon slot="icon-only" name="arrow-back-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>Fully Immunized Registry</ion-title>
+  </ion-toolbar>
+
+  <ion-toolbar color="light" class="filter-toolbar">
+    <ion-searchbar [(ngModel)]="searchTerm" placeholder="Search immunized child..." class="custom-search"></ion-searchbar>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding immunized-background">
+  <div class="immunized-wrapper">
+    
+    <div class="page-header">
+      <h2>Protected & Vaccinated Children</h2>
+      <p>List of children who have completed all required immunizations.</p>
+    </div>
+
+    <ion-list lines="none" class="immunized-list">
+      <ion-item *ngFor="let child of filteredImmunizedList" class="immunized-item" (click)="viewChildVaccineRecord(child)" style="cursor: pointer;">
+        <div class="card-content">
+          <div class="avatar-box">
+            <ion-icon name="shield-checkmark-outline" color="success"></ion-icon>
+          </div>
+          <div class="child-info">
+            <h3>{{ child.fullName }}</h3>
+            <p>Age: {{ child.ageMonths }} years old | Purok: <strong>{{ child.purok }}</strong></p>
+            <p class="vaccine-info">Last Vaccine: <strong>{{ child.lastVaccine }}</strong> ({{ child.dateCompleted }})</p>
+          </div>
+          <div class="badge-box">
+            <ion-badge color="success">Fully Immunized</ion-badge>
+          </div>
+        </div>
+      </ion-item>
+    </ion-list>
+
+  </div>
+</ion-content>
