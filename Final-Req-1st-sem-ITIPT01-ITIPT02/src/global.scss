@@ -273,3 +273,217 @@ body.dark {
   .version-tag { background: #334155 !important; color: #cbd5e1 !important; }
 }
 
+/* =================================================================
+   EXEMPTION PARA SA ADMIN HOME MINI SEARCH BOX & TITLE (DARK MODE)
+   =================================================================
+*/
+body.dark .fixed-top-section {
+  background: #0f172a !important;
+}
+
+body.dark .section-header-row {
+  h4 {
+    color: #f8fafc !important; 
+  }
+
+  .mini-search-box {
+    background: #1e293b !important;
+    border: 1px solid #475569 !important;
+    box-shadow: none !important;
+
+    input {
+      background: transparent !important;
+      color: #f8fafc !important;
+      
+      &::placeholder {
+        color: #94a3b8 !important;
+      }
+    }
+
+    ion-icon {
+      color: #94a3b8 !important;
+    }
+  }
+}
+
+app-archive {
+  .archive-card {
+    background: #ffffff;
+    transition: background-color 0.2s ease, color 0.2s ease;
+
+    h3 {
+      color: #0f172a;
+    }
+    p {
+      color: #64748b;
+    }
+  }
+}
+
+body.dark {
+  app-archive {
+    .archive-background {
+      --background: #0f172a !important;
+    }
+
+    .archive-card {
+      background: #1e293b !important;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+
+      h3 {
+        color: #f8fafc !important;
+      }
+      p {
+        color: #94a3b8 !important;
+      }
+      .arrow-icon {
+        color: #94a3b8 !important;
+      }
+    }
+  }
+}
+
+/* ---------------------------------------------------------------
+   3. GLOBAL IONIC ALERT / SELECT POPOVER FIX (Light & Dark Mode)
+   ---------------------------------------------------------------
+*/
+.alert-radio-label, 
+.alert-wrapper .alert-title, 
+.alert-wrapper .alert-sub-title,
+.alert-radio-group {
+  color: #0f172a !important;
+}
+
+body.dark {
+  .alert-wrapper {
+    background-color: #1e293b !important;
+    color: #f8fafc !important;
+    border: 1px solid #334155 !important;
+  }
+
+  .alert-title, 
+  .alert-sub-title, 
+  .alert-radio-label {
+    color: #f8fafc !important;
+  }
+
+  .alert-button {
+    color: #38bdf8 !important;
+  }
+}
+
+body.dark {
+  .contact-section {
+    background-color: #0f172a !important;
+    background: #0f172a !important;
+    border: 1px solid #334155 !important;
+    
+    .parent-info {
+      color: #f8fafc !important;
+      
+      ion-icon {
+        color: #94a3b8 !important;
+      }
+    }
+  }
+}
+
+/* ----------------------------------------------------
+   GLOBAL TOAST CONTROLLER OVERRIDE (Light & Dark Mode)
+   ----------------------------------------------------
+*/
+
+ion-toast {
+  --background: #1e293b !important; 
+  --color: #f8fafc !important;      
+  --button-color: #38bdf8 !important; 
+  &.toast-success, &.toast-danger, &.toast-warning, &.ion-color {
+    --background: #1e293b !important;
+    --color: #f8fafc !important;
+  }
+
+  &::part(container) {
+    background: #1e293b !important;
+    color: #f8fafc !important;
+    border-radius: 12px !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+}
+
+body.dark {
+  ion-toast {
+    --background: #0f172a !important;
+    --color: #f8fafc !important;
+
+    &::part(container) {
+      background: #0f172a !important;
+      color: #f8fafc !important;
+      border: 1px solid #334155 !important;
+    }
+  }
+}
+
+
+/* ==========================================
+   FLEXIBLE ION-FOOTER (Light & Dark Mode)
+   ========================================== 
+*/
+
+ion-footer {
+  --background: #ffffff !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.08) !important;
+  border-top: 1px solid #cbd5e1 !important;
+
+  &::part(native) {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+  }
+
+  ion-toolbar {
+    --background: #ffffff !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+
+    &::part(native) {
+      background: #ffffff !important;
+    }
+  }
+
+  ion-button {
+    --color: #0f172a !important;
+  }
+}
+
+
+body.dark {
+  ion-footer {
+    --background: #1e293b !important;
+    background: #1e293b !important;
+    background-color: #1e293b !important;
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.4) !important;
+    border-top: 1px solid #334155 !important;
+
+    &::part(native) {
+      background: #1e293b !important;
+      background-color: #1e293b !important;
+    }
+
+    ion-toolbar {
+      --background: #1e293b !important;
+      background: #1e293b !important;
+      color: #f8fafc !important;
+
+      &::part(native) {
+        background: #1e293b !important;
+      }
+    }
+
+    ion-button {
+      --color: #f8fafc !important;
+    }
+  }
+}

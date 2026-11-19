@@ -9,9 +9,10 @@
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
-  padding: 0.5rem 0;
+  padding: 0;
 }
 
+/* 1. Naka-lock at nakatigil sa itaas */
 .fixed-top-section {
   flex-shrink: 0;
   background: #f8fafc;
@@ -137,6 +138,7 @@
   }
 }
 
+/* 2. Dito lang magaganap ang pag-scroll sa ibaba para sa mga nakasched */
 .scrollable-bottom-section {
   flex-grow: 1;
   overflow-y: auto;
@@ -213,6 +215,7 @@
   }
 }
 
+/* Magka-line ang VACCINATION SCHEDULE at Search Bar */
 .section-header-row {
   display: flex !important;
   justify-content: space-between !important;
@@ -237,7 +240,7 @@
     border: 1px solid #cbd5e1 !important;
     border-radius: 20px !important;
     padding: 0.4rem 0.6rem !important;
-    width: 265px !important; 
+    width: 265px !important; /* <--- Dito na natin pinanipis/pinaliit nang direktang nakatali */
     max-width: 265px !important;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
     box-sizing: border-box !important;

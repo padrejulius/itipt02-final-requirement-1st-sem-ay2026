@@ -1,20 +1,21 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
-import { IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonButton, IonIcon, AlertController, ToastController, IonItem, IonLabel, IonList, IonBadge, IonFooter } from '@ionic/angular';
+import { IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonButton,IonIcon, AlertController, ToastController, IonItem, IonLabel, IonList, IonBadge, IonFooter} from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { settingsOutline, personCircleOutline, peopleOutline, alertCircleOutline, shieldCheckmarkOutline, chevronForwardOutline, personAddOutline, calendarOutline, medicalOutline, personOutline, notificationsOutline, searchOutline } from 'ionicons/icons';
+import { settingsOutline, personCircleOutline, trashOutline, peopleOutline,alertCircleOutline, shieldCheckmarkOutline, chevronForwardOutline,personAddOutline, calendarOutline, medicalOutline, personOutline,notificationsOutline, searchOutline} from 'ionicons/icons';
 
 @Component({
   selector: 'app-admin-home',
   templateUrl: './admin-home.page.html',
   styleUrls: ['./admin-home.page.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule, HttpClientModule, IonHeader, RouterLink, IonToolbar, IonTitle, IonContent, IonButtons, IonButton, IonIcon, IonItem, IonLabel, IonList, IonBadge, IonFooter, RouterLink] })
+  imports: [ CommonModule, FormsModule, HttpClientModule,IonHeader,IonToolbar, IonTitle,IonContent, IonButtons,IonButton,IonIcon, IonItem,IonLabel,IonList,IonBadge, IonFooter ]})
 
-export class AdminHomePage implements OnInit {
+
+  export class AdminHomePage implements OnInit {
   healthWorkerName: string = 'Administrator';
   assignedPurok: string = 'All Puroks';
 
@@ -26,13 +27,13 @@ export class AdminHomePage implements OnInit {
   upcomingVaccines: any[] = [];
 
   constructor(
-    private router: Router, 
+    private router: Router,
     private http: HttpClient,
     private cdr: ChangeDetectorRef,
     private alertController: AlertController,
     private toastController: ToastController
   ) {
-    addIcons({ 
+    addIcons({
       'settings-outline': settingsOutline,
       'person-circle-outline': personCircleOutline,
       'people-outline': peopleOutline,
@@ -40,22 +41,23 @@ export class AdminHomePage implements OnInit {
       'shield-checkmark-outline': shieldCheckmarkOutline,
       'chevron-forward-outline': chevronForwardOutline,
       'person-add-outline': personAddOutline,
-      'schedule-outline': calendarOutline,
+      'calendar-outline': calendarOutline,
       'medical-outline': medicalOutline,
       'person-outline': personOutline,
       'notifications-outline': notificationsOutline,
-      'search-outline': searchOutline
+      'search-outline': searchOutline,
+      'trash-outline': trashOutline
     });
   }
 
   ngOnInit(): void {
     this.loadDashboardData();
-    this.loadUpcomingVaccines(); 
+    this.loadUpcomingVaccines();
   }
 
   ionViewWillEnter(): void {
     this.loadDashboardData();
-    this.loadUpcomingVaccines(); 
+    this.loadUpcomingVaccines();
   }
 
   loadDashboardData(): void {
@@ -91,7 +93,6 @@ export class AdminHomePage implements OnInit {
     });
   }
 
-
   loadUpcomingVaccines(): void {
     this.http.get<any>('http://localhost:8000/api/vaccine-schedules/upcoming').subscribe({
       next: (response) => {
@@ -102,10 +103,10 @@ export class AdminHomePage implements OnInit {
             childName: item.child_name,
             vaccineType: item.vaccine_name,
             date: item.sched_date,
-            schedTime: item.sched_time, 
-            contact: item.contact,        
-            remarks: item.remarks,        
-            status: item.status,          
+            schedTime: item.sched_time,
+            contact: item.contact,
+            remarks: item.remarks,
+            status: item.status,
             purok: item.purok || 'Purok 1'
           }));
           this.cdr.detectChanges();
@@ -120,19 +121,19 @@ export class AdminHomePage implements OnInit {
     });
   }
 
-    get filteredVaccines() {
+  get filteredVaccines() {
     if (!this.searchTerm.trim()) {
       return this.upcomingVaccines;
     }
     const term = this.searchTerm.toLowerCase();
-    return this.upcomingVaccines.filter(item => 
+    return this.upcomingVaccines.filter(item =>
       item.childName.toLowerCase().includes(term) ||
       item.vaccineType.toLowerCase().includes(term) ||
       item.purok.toLowerCase().includes(term)
     );
   }
 
-async removeSchedule(alert: any) {
+  async removeSchedule(alert: any) {
     if (!alert || !alert.id) return;
 
     const alertPopup = await this.alertController.create({
@@ -146,7 +147,6 @@ async removeSchedule(alert: any) {
             this.http.put<any>(`http://localhost:8000/api/schedules/archive/${alert.id}`, {}).subscribe({
               next: async (response) => {
                 if (response && response.success) {
-                  // Baguhin natin ang pag-assign para bagong reference ang gamitin ng Angular change detection
                   this.upcomingVaccines = this.upcomingVaccines.filter(item => item.id !== alert.id);
                   this.cdr.markForCheck();
 
@@ -188,7 +188,6 @@ async removeSchedule(alert: any) {
     });
   }
 
-  
   goToChildDict(): void {
     this.router.navigate(['/child-dict']);
   }
@@ -216,5 +215,4 @@ async removeSchedule(alert: any) {
   goToVaccine(): void {
     this.router.navigate(['/vaccine']);
   }
-
 }
