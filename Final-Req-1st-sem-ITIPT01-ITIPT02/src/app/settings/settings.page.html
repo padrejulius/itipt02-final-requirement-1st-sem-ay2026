@@ -34,13 +34,6 @@
         <ion-toggle slot="end" [(ngModel)]="darkMode" (ionChange)="toggleDarkMode($event)"></ion-toggle>
       </ion-item>
 
-      <ion-item class="setting-item">
-        <ion-icon name="notifications-outline" slot="start"></ion-icon>
-        <ion-label>Push Notifications</ion-label>
-        <ion-toggle slot="end" [(ngModel)]="notifications"></ion-toggle>
-      </ion-item>
-
-      <!-- Bagong Archive Records Button/Item -->
       <ion-item class="setting-item clickable-item" routerLink="/archive" detail="true">
         <ion-icon name="archive-outline" slot="start" color="primary"></ion-icon>
         <ion-label>Archived</ion-label>
