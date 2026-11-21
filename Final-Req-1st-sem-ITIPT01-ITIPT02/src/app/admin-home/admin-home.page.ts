@@ -1,30 +1,42 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, signal, computed } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
-import { IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonButton,IonIcon, AlertController, ToastController, IonItem, IonLabel, IonList, IonBadge, IonFooter} from '@ionic/angular';
+import { IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonButton, IonIcon, IonItem, IonLabel, IonList, IonBadge, IonFooter, AlertController,ToastController} from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { settingsOutline, personCircleOutline, trashOutline, peopleOutline,alertCircleOutline, shieldCheckmarkOutline, chevronForwardOutline,personAddOutline, calendarOutline, medicalOutline, personOutline,notificationsOutline, searchOutline} from 'ionicons/icons';
+import { settingsOutline, personCircleOutline, peopleOutline, alertCircleOutline, shieldCheckmarkOutline, chevronForwardOutline, personAddOutline, calendarOutline, medicalOutline, personOutline, notificationsOutline, searchOutline, trashOutline} from 'ionicons/icons';
 
 @Component({
   selector: 'app-admin-home',
   templateUrl: './admin-home.page.html',
   styleUrls: ['./admin-home.page.scss'],
   standalone: true,
-  imports: [ CommonModule, FormsModule, HttpClientModule,IonHeader,IonToolbar, IonTitle,IonContent, IonButtons,IonButton,IonIcon, IonItem,IonLabel,IonList,IonBadge, IonFooter ]})
-
+  imports: [ CommonModule, FormsModule, HttpClientModule, IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonButton, IonIcon, IonItem, IonLabel, IonList, IonBadge,IonFooter ]})
 
   export class AdminHomePage implements OnInit {
-  healthWorkerName: string = 'Administrator';
-  assignedPurok: string = 'All Puroks';
+  healthWorkerName = signal<string>('Administrator');
+  assignedPurok = signal<string>('All Puroks');
 
-  totalChildren: number = 0;
-  feedingProgramCount: number = 0;
-  fullyImmunizedCount: number = 0;
+  totalChildren = signal<number>(0);
+  feedingProgramCount = signal<number>(0);
+  fullyImmunizedCount = signal<number>(0);
 
-  searchTerm: string = '';
-  upcomingVaccines: any[] = [];
+  searchTerm = signal<string>('');
+  upcomingVaccines = signal<any[]>([]);
+
+  filteredVaccines = computed(() => {
+    const term = this.searchTerm().trim().toLowerCase();
+    const list = this.upcomingVaccines();
+    if (!term) {
+      return list;
+    }
+    return list.filter(item =>
+      String(item.childName || '').toLowerCase().includes(term) ||
+      String(item.vaccineType || '').toLowerCase().includes(term) ||
+      String(item.purok || '').toLowerCase().includes(term)
+    );
+  });
 
   constructor(
     private router: Router,
@@ -41,7 +53,7 @@ import { settingsOutline, personCircleOutline, trashOutline, peopleOutline,alert
       'shield-checkmark-outline': shieldCheckmarkOutline,
       'chevron-forward-outline': chevronForwardOutline,
       'person-add-outline': personAddOutline,
-      'calendar-outline': calendarOutline,
+      'schedule-outline': calendarOutline,
       'medical-outline': medicalOutline,
       'person-outline': personOutline,
       'notifications-outline': notificationsOutline,
@@ -64,13 +76,13 @@ import { settingsOutline, personCircleOutline, trashOutline, peopleOutline,alert
     this.http.get<any>('http://localhost:8000/api/children').subscribe({
       next: (response) => {
         if (response && response.success && response.data) {
-          this.totalChildren = response.data.length;
+          this.totalChildren.set(response.data.length);
 
           const underweightList = response.data.filter((child: any) => {
             const status = child.nutritional_status ? child.nutritional_status.trim().toLowerCase() : '';
             return status.includes('underweight');
           });
-          this.feedingProgramCount = underweightList.length;
+          this.feedingProgramCount.set(underweightList.length);
 
           this.cdr.detectChanges();
         }
@@ -83,7 +95,7 @@ import { settingsOutline, personCircleOutline, trashOutline, peopleOutline,alert
     this.http.get<any>('http://localhost:8000/api/children/fully-immunized').subscribe({
       next: (response) => {
         if (response && response.success && response.data) {
-          this.fullyImmunizedCount = response.data.length;
+          this.fullyImmunizedCount.set(response.data.length);
           this.cdr.detectChanges();
         }
       },
@@ -97,7 +109,7 @@ import { settingsOutline, personCircleOutline, trashOutline, peopleOutline,alert
     this.http.get<any>('http://localhost:8000/api/vaccine-schedules/upcoming').subscribe({
       next: (response) => {
         if (response && response.success && response.data) {
-          this.upcomingVaccines = response.data.map((item: any) => ({
+          const mapped = response.data.map((item: any) => ({
             id: item.id,
             childId: item.child_id,
             childName: item.child_name,
@@ -109,9 +121,10 @@ import { settingsOutline, personCircleOutline, trashOutline, peopleOutline,alert
             status: item.status,
             purok: item.purok || 'Purok 1'
           }));
+          this.upcomingVaccines.set(mapped);
           this.cdr.detectChanges();
         } else {
-          this.upcomingVaccines = [];
+          this.upcomingVaccines.set([]);
           this.cdr.detectChanges();
         }
       },
@@ -119,18 +132,6 @@ import { settingsOutline, personCircleOutline, trashOutline, peopleOutline,alert
         console.error('Error fetching upcoming vaccines:', err);
       }
     });
-  }
-
-  get filteredVaccines() {
-    if (!this.searchTerm.trim()) {
-      return this.upcomingVaccines;
-    }
-    const term = this.searchTerm.toLowerCase();
-    return this.upcomingVaccines.filter(item =>
-      item.childName.toLowerCase().includes(term) ||
-      item.vaccineType.toLowerCase().includes(term) ||
-      item.purok.toLowerCase().includes(term)
-    );
   }
 
   async removeSchedule(alert: any) {
@@ -147,7 +148,7 @@ import { settingsOutline, personCircleOutline, trashOutline, peopleOutline,alert
             this.http.put<any>(`http://localhost:8000/api/schedules/archive/${alert.id}`, {}).subscribe({
               next: async (response) => {
                 if (response && response.success) {
-                  this.upcomingVaccines = this.upcomingVaccines.filter(item => item.id !== alert.id);
+                  this.upcomingVaccines.update(list => list.filter(item => item.id !== alert.id));
                   this.cdr.markForCheck();
 
                   const toast = await this.toastController.create({

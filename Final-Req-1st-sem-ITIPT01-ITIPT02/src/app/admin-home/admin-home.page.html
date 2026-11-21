@@ -9,7 +9,7 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding dashboard-background">
+<ion-content class="ion-padding dashboard-background" [scrollY]="false">
   <div class="dashboard-wrapper">
 
     <div class="fixed-top-section">
@@ -21,7 +21,7 @@
             <ion-icon name="people-outline"></ion-icon>
           </div>
           <div class="stat-details">
-            <h3>{{ totalChildren }}</h3>
+            <h3>{{ totalChildren() }}</h3>
             <p>Total Registered Children</p>
           </div>
           <ion-icon name="chevron-forward-outline" class="arrow-icon"></ion-icon>
@@ -32,7 +32,7 @@
             <ion-icon name="alert-circle-outline"></ion-icon>
           </div>
           <div class="stat-details">
-            <h3>{{ feedingProgramCount }}</h3>
+            <h3>{{ feedingProgramCount() }}</h3>
             <p>For Feeding Program</p>
           </div>
           <ion-icon name="chevron-forward-outline" class="arrow-icon"></ion-icon>
@@ -43,70 +43,71 @@
             <ion-icon name="shield-checkmark-outline"></ion-icon>
           </div>
           <div class="stat-details">
-            <h3>{{ fullyImmunizedCount }}</h3>
+            <h3>{{ fullyImmunizedCount() }}</h3>
             <p>Fully Immunized</p>
           </div>
           <ion-icon name="chevron-forward-outline" class="arrow-icon"></ion-icon>
         </div>
       </div>
 
-      <!-- Section Title at Maliit na Search Bar na magka-line -->
       <div class="section-header-row">
-        <h4>VACCINATION SCHEDULE ({{ upcomingVaccines.length }})</h4>
+        <h4>VACCINATION SCHEDULE ({{ upcomingVaccines().length }})</h4>
         <div class="mini-search-box">
           <ion-icon name="search-outline"></ion-icon>
-          <input
-            type="text"
-            [(ngModel)]="searchTerm"
+          <input 
+            type="text" 
+            [ngModel]="searchTerm()"
+            (ngModelChange)="searchTerm.set($event)"
             placeholder="Search schedule..." />
         </div>
       </div>
     </div>
 
-    <!-- 2. SCROLLABLE BOTTOM SECTION (Filtered listahan ng mga nakasched) -->
     <div class="scrollable-bottom-section">
       <div class="alerts-section">
-        <ion-list lines="none" class="alert-list" *ngIf="filteredVaccines && filteredVaccines.length > 0">
-          <ion-item *ngFor="let alert of filteredVaccines" class="alert-item">
-
-            <!-- KALIWA: Kapag pinindot, bubukas ang vaccine-sched para i-edit o tingnan ang data -->
-            <div (click)="openScheduleDetails(alert)" style="display: flex; align-items: center; flex: 1; min-width: 0; cursor: pointer; padding: 8px 0;">
-              <ion-icon name="medical-outline" color="success" style="margin-right: 16px; font-size: 24px; flex-shrink: 0;"></ion-icon>
-              <ion-label style="flex: 1; min-width: 0; margin: 0;">
+        <ion-list lines="none" class="alert-list" *ngIf="filteredVaccines().length > 0">
+          <ion-item *ngFor="let alert of filteredVaccines()" class="alert-item">
+            
+            <div (click)="openScheduleDetails(alert)" style="display: flex; align-items: center; width: 100%; cursor: pointer; padding: 8px 0;">
+              <ion-icon name="medical-outline" slot="start" color="success" style="margin-right: 16px; font-size: 24px;"></ion-icon>
+              <ion-label style="flex-grow: 1;">
                 <h2 style="font-weight: bold; color: #333;">{{ alert.childName }}</h2>
                 <p style="color: #666; font-size: 13px;">{{ alert.vaccineType }} - Date: {{ alert.date }}</p>
               </ion-label>
             </div>
 
-            <!-- KANAN: Purok badge at Remove button -->
-            <div slot="end" style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px; margin-left: 8px;" (click)="$event.stopPropagation()">
+            <div slot="end" style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;" (click)="$event.stopPropagation()">
               <ion-badge color="primary" style="margin: 0; width: 90px; height: 18px; text-align: center; display: inline-flex; align-items: center; justify-content: center; border-radius: 12px; font-weight: 600;">
                 {{ alert.purok }}
               </ion-badge>
-
-              <button type="button"
-                      (click)="removeSchedule(alert)"
-                      style="cursor: pointer; margin: 0; width: 90px; height: 18px; background-color: #eb445a; color: white; border: none; border-radius: 12px; font-size: 10px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; outline: none;">
-                <ion-icon name="trash-outline" style="margin-right: 2px; font-size: 10px; pointer-events: none;"></ion-icon> Remove
-              </button>
+              
+              <ion-button 
+                type="button" 
+                color="danger"
+                size="small"
+                (click)="removeSchedule(alert)" 
+                style="--padding-start: 6px; --padding-end: 6px; --min-height: 18px; height: 18px; width: 90px; margin: 0; font-size: 10px; font-weight: 600; --border-radius: 12px;">
+                <ion-icon slot="start" name="trash-outline" style="margin-right: 2px; font-size: 10px;"></ion-icon>
+                Remove
+              </ion-button>
             </div>
 
           </ion-item>
         </ion-list>
-
-        <p *ngIf="!filteredVaccines || filteredVaccines.length === 0" style="text-align: center; color: #666; font-size: 14px; margin-top: 10px;">
+        
+        <p *ngIf="filteredVaccines().length === 0" style="text-align: center; color: #666; font-size: 14px; margin-top: 10px;">
           No matching vaccination schedules found.
         </p>
       </div>
     </div>
-
   </div>
 </ion-content>
+
 
 <ion-footer>
   <ion-toolbar style="--background: #1e293b; --color: #f8fafc;">
     <ion-buttons slot="primary" class="ion-justify-content-around" style="width: 100%;">
-
+      
       <!-- 1. Vaccine Button -->
       <ion-button (click)="goToVaccine()">
         <ion-icon name="medical-outline" slot="start"></ion-icon>
@@ -121,10 +122,9 @@
 
       <!-- 3. Vaccination Schedule Button -->
       <ion-button (click)="viewVaccineSched()">
-        <ion-icon name="calendar-outline" slot="start"></ion-icon>
+        <ion-icon name="schedule-outline" slot="start"></ion-icon>
         Schedule
-      </ion-button>
-
+      </ion-button>   
     </ion-buttons>
   </ion-toolbar>
 </ion-footer>

@@ -1,13 +1,9 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
-import { Router, ActivatedRoute } from '@angular/router';
+import { Component, OnInit, ChangeDetectorRef, signal } from '@angular/core';
+import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
-import { 
-  IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, 
-  IonButton, IonIcon, IonItem, IonSelect, IonSelectOption, 
-  IonInput, IonBackButton, ToastController 
-} from '@ionic/angular';
+import { IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonButton, IonIcon, IonItem, IonSelect, IonSelectOption, IonInput, IonBackButton, ToastController} from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { saveOutline } from 'ionicons/icons';
 
@@ -16,26 +12,10 @@ import { saveOutline } from 'ionicons/icons';
   templateUrl: './add-child.page.html',
   styleUrls: ['./add-child.page.scss'],
   standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    HttpClientModule,
-    IonHeader,
-    IonToolbar,
-    IonTitle,
-    IonContent,
-    IonButtons,
-    IonButton,
-    IonIcon,
-    IonItem,
-    IonSelect,
-    IonSelectOption,
-    IonInput,
-    IonBackButton
-  ]
-})
+  imports: [ CommonModule, FormsModule, HttpClientModule, RouterLink, IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonButton, IonIcon, IonItem, IonSelect, IonSelectOption, IonInput,IonBackButton ]})
+
 export class AddChildPage implements OnInit {
-  child: any = {
+  child = signal<any>({
     name: '',
     dob: '',
     gender: '',
@@ -46,12 +26,12 @@ export class AddChildPage implements OnInit {
     weight: null,
     height: null,
     nutritionalStatus: ''
-  };
+  });
 
-  isEditMode: boolean = false;
-  childId: number | null = null;
-  isViewMode: boolean = false;
-  pageTitle: string = 'Add new child record';
+  isEditMode = signal<boolean>(false);
+  childId = signal<number | null>(null);
+  isViewMode = signal<boolean>(false);
+  pageTitle = signal<string>('Add new child record');
 
   constructor(
     private router: Router,
@@ -65,26 +45,33 @@ export class AddChildPage implements OnInit {
     });
   }
 
- ngOnInit(): void {
+  ngOnInit(): void {
     this.route.queryParams.subscribe(params => {
       // Para sa View Mode galing sa Archive
       if (params['viewMode']) {
-        this.isViewMode = true;
-        this.pageTitle = 'All child Record';
-        
-        const childId = params['id'];
-        if (childId) {
-          this.loadChildFromServer(+childId);
+        this.isViewMode.set(true);
+        this.pageTitle.set('All child Record');
+
+        const idParam = params['id'];
+        if (idParam) {
+          this.loadChildFromServer(+idParam);
         }
-      } 
+      }
       // Para sa Edit Mode galing sa Child Directory
       else if (params['editMode'] && params['id']) {
-        this.isEditMode = true;
-        this.childId = +params['id'];
-        this.pageTitle = 'Edit Child Record';
-        this.loadChildFromServer(this.childId);
+        this.isEditMode.set(true);
+        this.childId.set(+params['id']);
+        this.pageTitle.set('Edit Child Record');
+        this.loadChildFromServer(this.childId()!);
       }
     });
+  }
+
+  updateChildField(field: string, value: any): void {
+    this.child.update(current => ({
+      ...current,
+      [field]: value
+    }));
   }
 
   loadChildFromServer(id: number): void {
@@ -99,7 +86,7 @@ export class AddChildPage implements OnInit {
             formattedDob = rawDob.split('T')[0];
           }
 
-          this.child = {
+          this.child.set({
             name: data.name || data.fullName || data.child_name || '',
             dob: formattedDob,
             gender: data.gender || '',
@@ -110,8 +97,8 @@ export class AddChildPage implements OnInit {
             weight: data.weight !== undefined ? data.weight : (data.weightKg || data.weight_kg || 0),
             height: data.height !== undefined ? data.height : (data.heightCm || data.height_cm || 0),
             nutritionalStatus: data.nutritionalStatus || data.nutritional_status || data.status || ''
-          };
-          
+          });
+
           this.cdr.detectChanges();
         }
       },
@@ -121,7 +108,7 @@ export class AddChildPage implements OnInit {
     });
   }
 
- async presentToast(message: string, color: string = 'success') {
+  async presentToast(message: string, color: string = 'success') {
     const toast = await this.toastController.create({
       message: message,
       duration: 2000,
@@ -139,8 +126,11 @@ export class AddChildPage implements OnInit {
       return;
     }
 
-    if (this.isEditMode && this.childId) {
-      this.http.put(`http://localhost:8000/api/children/${this.childId}`, this.child).subscribe({
+    const payload = this.child();
+    const currentId = this.childId();
+
+    if (this.isEditMode() && currentId) {
+      this.http.put(`http://localhost:8000/api/children/${currentId}`, payload).subscribe({
         next: async (res: any) => {
           if (res && res.success) {
             await this.presentToast('Child record successfully updated!');
@@ -153,7 +143,7 @@ export class AddChildPage implements OnInit {
         }
       });
     } else {
-      this.http.post('http://localhost:8000/api/children', this.child).subscribe({
+      this.http.post('http://localhost:8000/api/children', payload).subscribe({
         next: async (res: any) => {
           if (res && res.success) {
             await this.presentToast('Child record successfully added!');

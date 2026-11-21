@@ -12,25 +12,21 @@
 <ion-content class="ion-padding archive-background">
   <div class="archive-wrapper">
 
-    <!-- Empty State -->
-    <div *ngIf="archivedChildren.length === 0" class="empty-state" style="text-align: center; margin-top: 50px;">
+    <div *ngIf="archivedChildren().length === 0" class="empty-state" style="text-align: center; margin-top: 50px;">
       <ion-icon name="archive-outline" style="font-size: 48px; color: var(--ion-color-medium);"></ion-icon>
       <p>No archived records found.</p>
     </div>
 
-    <!-- Listahan ng mga naka-archive na kapareho ng disenyo ng child-dict -->
     <div class="archive-list">
-      <ion-card *ngFor="let child of archivedChildren" class="child-card" style="margin-bottom: 12px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+      <ion-card *ngFor="let child of archivedChildren()" class="child-card" style="margin-bottom: 12px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
         <div class="card-content" style="display: flex; align-items: flex-start; justify-content: space-between; padding: 15px;">
           
-          <!-- Kaliwa: Kapag pinindot ito, bubukas ang Add Child page nang naka-read-only -->
           <div class="card-info" (click)="viewChildDetails(child)" style="cursor: pointer; flex-grow: 1;">
             <h3 style="margin: 0 0 4px 0; font-size: 16px; font-weight: bold; color: #333;">{{ child.name }}</h3>
-            <p style="margin: 0; font-size: 13px; color: #666;">Age: {{ child.age }} mos | Purok: {{ child.purok }}</p>
+            <p style="margin: 0; font-size: 13px; color: #666;">Age: {{ child.age }} years old | {{ child.purok }}</p>
             <p style="margin: 4px 0 0 0; font-size: 12px; color: #888;">Wt: {{ child.weight }} kg | Ht: {{ child.height }} cm</p>
           </div>
 
-          <!-- Kanan: Status badge at Restore button -->
           <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
             <ion-badge [color]="getStatusBadgeColor(child.nutritional_status)" style="margin: 0; width: 160px; text-align: center; display: inline-block; border-radius: 6px;">
               {{ child.nutritional_status }}

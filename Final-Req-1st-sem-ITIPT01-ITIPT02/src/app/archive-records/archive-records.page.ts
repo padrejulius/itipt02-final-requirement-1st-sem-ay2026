@@ -1,8 +1,8 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Component, OnInit, ChangeDetectorRef, signal } from '@angular/core';
+import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
-import { IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonButton, IonIcon, IonCard, IonBadge, ToastController, AlertController } from '@ionic/angular';
+import { IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonButton, IonIcon, IonCard, IonBadge, ToastController,AlertController} from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { arrowBackOutline, archiveOutline, refreshOutline } from 'ionicons/icons';
 
@@ -11,23 +11,10 @@ import { arrowBackOutline, archiveOutline, refreshOutline } from 'ionicons/icons
   templateUrl: './archive-records.page.html',
   styleUrls: ['./archive-records.page.scss'],
   standalone: true,
-  imports: [
-    CommonModule, 
-    HttpClientModule, 
-    IonHeader, 
-    IonToolbar, 
-    IonTitle, 
-    IonContent, 
-    IonButtons, 
-    IonButton, 
-    IonIcon, 
-    IonCard, 
-    IonBadge, 
-    RouterLink
-  ]
-})
-export class ArchiveRecordsPage implements OnInit {
-  archivedChildren: any[] = [];
+  imports: [ CommonModule, HttpClientModule,IonHeader,IonToolbar,IonTitle, IonContent,IonButtons, IonButton, IonIcon, IonCard, IonBadge ]})
+
+  export class ArchiveRecordsPage implements OnInit {
+  archivedChildren = signal<any[]>([]);
 
   constructor(
     private router: Router,
@@ -55,7 +42,7 @@ export class ArchiveRecordsPage implements OnInit {
     this.http.get<any>('http://localhost:8000/api/children/archived').subscribe({
       next: (response) => {
         if (response && response.success) {
-          this.archivedChildren = response.data;
+          this.archivedChildren.set(response.data || []);
           this.cdr.detectChanges();
         }
       },
@@ -65,11 +52,10 @@ export class ArchiveRecordsPage implements OnInit {
     });
   }
 
-  // 1. CONFIRMATION ALERT Bago mag-restore (Inayos ang return type na Promise<void>)
   async confirmRestore(child: any): Promise<void> {
     const alert = await this.alertController.create({
       header: 'Confirm Restore',
-      message: `Are you sure you want to restore ${child.name} back to the active directory?`, // <--- Tinanggal ang <strong> tags
+      message: `Are you sure you want to restore ${child.name} back to the active directory?`,
       buttons: [
         {
           text: 'Cancel',
@@ -88,20 +74,15 @@ export class ArchiveRecordsPage implements OnInit {
     await alert.present();
   }
 
-
-  // 2. TOTOONG EXECUTION NG RESTORE + TOAST NOTIFICATION + REMOVE SA LIST
   executeRestore(id: number): void {
     this.http.put<any>(`http://localhost:8000/api/children/restore/${id}`, {}).subscribe({
       next: async (response) => {
         if (response && response.success) {
-          // 1. I-filter agad sa frontend para mawala sa view
-          this.archivedChildren = this.archivedChildren.filter(item => item.id !== id);
+          this.archivedChildren.update(list => list.filter(item => item.id !== id));
           this.cdr.detectChanges();
 
-          // 2. I-load ulit ang archived children para siguruhing naka-sync sa database
           this.loadArchivedChildren();
 
-          // 3. Magpakita ng Toast na may "View" button papuntang child-dict
           const toast = await this.toastController.create({
             message: 'Successfully restored.',
             duration: 4000,

@@ -3,7 +3,7 @@
     <ion-buttons slot="start">
       <ion-back-button defaultHref="/admin-home"></ion-back-button>
     </ion-buttons>
-    <ion-title>{{ pageTitle }}</ion-title>
+    <ion-title>{{ pageTitle() }}</ion-title>
   </ion-toolbar>
 </ion-header>
 
@@ -13,17 +13,41 @@
       
       <!-- Full Name of Child -->
       <ion-item class="rounded-item ion-margin-bottom">
-        <ion-input label="Full Name of Child" labelPlacement="floating" [(ngModel)]="child.name" name="name" [disabled]="isViewMode"required></ion-input>
+        <ion-input 
+          label="Full Name of Child" 
+          labelPlacement="floating" 
+          [ngModel]="child().name"
+          (ngModelChange)="updateChildField('name', $event)"
+          name="name" 
+          [disabled]="isViewMode()"
+          required>
+        </ion-input>
       </ion-item>
 
       <!-- Date of Birth -->
       <ion-item class="rounded-item ion-margin-bottom">
-        <ion-input type="date" label="Date of Birth" labelPlacement="floating" [(ngModel)]="child.dob" name="dob" [disabled]="isViewMode" required></ion-input>
+        <ion-input 
+          type="date" 
+          label="Date of Birth" 
+          labelPlacement="floating" 
+          [ngModel]="child().dob"
+          (ngModelChange)="updateChildField('dob', $event)"
+          name="dob" 
+          [disabled]="isViewMode()"
+          required>
+        </ion-input>
       </ion-item>
 
       <!-- Gender Selection -->
       <ion-item class="rounded-item ion-margin-bottom">
-        <ion-select label="Gender" labelPlacement="floating" [(ngModel)]="child.gender" name="gender" [disabled]="isViewMode"required>
+        <ion-select 
+          label="Gender" 
+          labelPlacement="floating" 
+          [ngModel]="child().gender"
+          (ngModelChange)="updateChildField('gender', $event)"
+          name="gender" 
+          [disabled]="isViewMode()"
+          required>
           <ion-select-option value="Male">Male</ion-select-option>
           <ion-select-option value="Female">Female</ion-select-option>
         </ion-select>
@@ -31,17 +55,44 @@
 
       <!-- Age (in months) -->
       <ion-item class="rounded-item ion-margin-bottom">
-        <ion-input type="number" label="Age (in months)" labelPlacement="floating" [(ngModel)]="child.age" name="age" [disabled]="isViewMode"required></ion-input>
+        <ion-input 
+          type="number" 
+          label="Age" 
+          labelPlacement="floating" 
+          [ngModel]="child().age"
+          (ngModelChange)="updateChildField('age', $event)"
+          name="age" 
+          [disabled]="isViewMode()"
+          required>
+        </ion-input>
       </ion-item>
 
       <!-- Parent / Guardian Name -->
       <ion-item class="rounded-item ion-margin-bottom">
-        <ion-input label="Parent / Guardian Name" labelPlacement="floating" [(ngModel)]="child.guardian" name="guardian" [disabled]="isViewMode"required></ion-input>
+        <ion-input 
+          label="Parent / Guardian Name" 
+          labelPlacement="floating" 
+          [ngModel]="child().guardian"
+          (ngModelChange)="updateChildField('guardian', $event)"
+          name="guardian" 
+          [disabled]="isViewMode()"
+          required>
+        </ion-input>
       </ion-item>
 
       <!-- Contact Number -->
       <ion-item class="rounded-item ion-margin-bottom">
-        <ion-input type="tel" label="Contact Number" labelPlacement="floating" [(ngModel)]="child.contact" name="contact" placeholder="09XXXXXXXXX" [disabled]="isViewMode"required></ion-input>
+        <ion-input 
+          type="tel" 
+          label="Contact Number" 
+          labelPlacement="floating" 
+          [ngModel]="child().contact"
+          (ngModelChange)="updateChildField('contact', $event)"
+          name="contact" 
+          placeholder="09XXXXXXXXX"
+          [disabled]="isViewMode()"
+          required>
+        </ion-input>
       </ion-item>
 
       <!-- Assigned Purok -->
@@ -49,9 +100,10 @@
         <ion-select 
           label="Assigned Purok" 
           labelPlacement="floating" 
-          [(ngModel)]="child.purok" 
+          [ngModel]="child().purok"
+          (ngModelChange)="updateChildField('purok', $event)"
           name="purok" 
-          [disabled]="isViewMode"
+          [disabled]="isViewMode()"
           required>
           <ion-select-option value="Purok 1">Purok 1</ion-select-option>
           <ion-select-option value="Purok 2">Purok 2</ion-select-option>
@@ -69,9 +121,10 @@
           type="number" 
           label="Weight (kg)" 
           labelPlacement="floating" 
-          [(ngModel)]="child.weight" 
+          [ngModel]="child().weight"
+          (ngModelChange)="updateChildField('weight', $event)"
           name="weight" 
-          [disabled]="isViewMode"
+          [disabled]="isViewMode()"
           required>
         </ion-input>
       </ion-item>
@@ -82,9 +135,10 @@
           type="number" 
           label="Height (cm)" 
           labelPlacement="floating" 
-          [(ngModel)]="child.height" 
+          [ngModel]="child().height"
+          (ngModelChange)="updateChildField('height', $event)"
           name="height" 
-          [disabled]="isViewMode"
+          [disabled]="isViewMode()"
           required>
         </ion-input>
       </ion-item>
@@ -94,9 +148,10 @@
         <ion-select 
           label="Nutritional Status" 
           labelPlacement="floating" 
-          [(ngModel)]="child.nutritionalStatus" 
+          [ngModel]="child().nutritionalStatus"
+          (ngModelChange)="updateChildField('nutritionalStatus', $event)"
           name="nutritionalStatus" 
-          [disabled]="isViewMode"
+          [disabled]="isViewMode()"
           required>
           <ion-select-option value="Normal">Normal</ion-select-option>
           <ion-select-option value="Underweight">Underweight</ion-select-option>
@@ -106,7 +161,7 @@
       </ion-item>
 
       <!-- Save Button -->
-      <ion-button expand="block" type="submit" color="success" class="ion-margin-top save-btn" *ngIf="!isViewMode" [disabled]="isViewMode">
+      <ion-button expand="block" type="submit" color="success" class="ion-margin-top save-btn" *ngIf="!isViewMode()" [disabled]="isViewMode()">
         <ion-icon name="save-outline" slot="start"></ion-icon>
         SAVE CHILD RECORD
       </ion-button>
