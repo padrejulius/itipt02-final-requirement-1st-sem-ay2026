@@ -13,9 +13,30 @@
     <!-- Login Form -->
     <form (ngSubmit)="onLogin()" class="login-form">
       <div class="input-group">
-        <ion-input [(ngModel)]="credentials.username" name="username" id="username" class="custom-input" label="Username" label-placement="floating" fill="solid" required></ion-input>
+        <ion-input
+          [ngModel]="credentials().username"
+          (ngModelChange)="updateField('username', $event)"
+          name="username"
+          id="username"
+          class="custom-input"
+          label="Username"
+          label-placement="floating"
+          fill="solid"
+          required>
+        </ion-input>
 
-        <ion-input [(ngModel)]="credentials.password" name="password" id="password" class="custom-input" type="password" label="Password" label-placement="floating" fill="solid" required></ion-input>
+        <ion-input
+          [ngModel]="credentials().password"
+          (ngModelChange)="updateField('password', $event)"
+          name="password"
+          id="password"
+          class="custom-input"
+          type="password"
+          label="Password"
+          label-placement="floating"
+          fill="solid"
+          required>
+        </ion-input>
       </div>
 
       <div class="button-group">
@@ -23,7 +44,7 @@
           <ion-icon name="log-in-outline" slot="start"></ion-icon>
           Sign In
         </ion-button>
-        <ion-button type="button" expand="block" shape="round" fill="clear" color="medium" (click)="onCancel()" class="cancel-btn" color="danger">
+        <ion-button type="button" expand="block" shape="round" fill="clear" (click)="onCancel()" class="cancel-btn" color="danger">
           Cancel
         </ion-button>
       </div>

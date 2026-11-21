@@ -16,10 +16,19 @@
   <!-- Searchbar and Filter Toolbar -->
   <ion-toolbar color="light" class="filter-toolbar">
     <div class="search-filter-container">
-      <ion-searchbar [(ngModel)]="searchTerm" (ionInput)="applyFilter()" placeholder="Search child name..." class="custom-search"></ion-searchbar>
+      <ion-searchbar
+        [ngModel]="searchTerm()"
+        (ngModelChange)="searchTerm.set($event)"
+        placeholder="Search child name..."
+        class="custom-search">
+      </ion-searchbar>
       
       <ion-item class="filter-item" lines="none">
-        <ion-select [(ngModel)]="selectedPurok" (ionChange)="applyFilter()" placeholder="All Puroks" interface="popover">
+        <ion-select
+          [ngModel]="selectedPurok()"
+          (ngModelChange)="selectedPurok.set($event)"
+          placeholder="All Puroks"
+          interface="popover">
           <ion-select-option value="">All Puroks</ion-select-option>
           <ion-select-option value="Purok 1">Purok 1</ion-select-option>
           <ion-select-option value="Purok 2">Purok 2</ion-select-option>
@@ -37,9 +46,7 @@
     
     <!-- Children Sliding List -->
     <ion-list lines="none" class="sliding-list">
-      <ion-item-sliding *ngFor="let child of filteredChildren" class="sliding-item-wrapper">
-        
-        <!-- Dinagdagan lang natin ng click at long-press events dito nang hindi binabago ang loob -->
+      <ion-item-sliding *ngFor="let child of filteredChildren()" class="sliding-item-wrapper">
         <ion-item class="child-card-item" 
                   (click)="onItemClick(child)"
                   (mousedown)="startLongPress(child)"
@@ -64,7 +71,7 @@
           </div>
         </ion-item>
 
-        <!-- Sliding Options (Edit & Delete) - Functional pa rin -->
+        <!-- Sliding Options (Edit & Delete) -->
         <ion-item-options side="end">
           <ion-item-option color="primary" (click)="editChild(child)">
             <ion-icon slot="icon-only" name="create-outline"></ion-icon>

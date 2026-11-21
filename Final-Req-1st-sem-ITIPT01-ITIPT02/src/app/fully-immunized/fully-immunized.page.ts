@@ -1,8 +1,8 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, signal, computed } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonButton, IonIcon, IonSearchbar, IonList, IonItem, IonBadge } from '@ionic/angular';
+import { IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonButton, IonIcon, IonSearchbar, IonList, IonItem, IonBadge} from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { arrowBackOutline, shieldCheckmarkOutline } from 'ionicons/icons';
 
@@ -19,14 +19,30 @@ interface ImmunizedChild {
   selector: 'app-fully-immunized',
   templateUrl: './fully-immunized.page.html',
   styleUrls: ['./fully-immunized.page.scss'],
-  imports: [CommonModule, FormsModule, IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonButton, IonIcon, IonSearchbar, IonList, IonItem, IonBadge]
-})
+  standalone: true,
+  imports: [ CommonModule, FormsModule, IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonButton, IonIcon, IonSearchbar, IonList, IonItem, IonBadge ] })
+
 export class FullyImmunizedPage implements OnInit {
-  searchTerm: string = '';
-  immunizedList: ImmunizedChild[] = [];
+  searchTerm = signal<string>('');
+  immunizedList = signal<ImmunizedChild[]>([]);
+
+  filteredImmunizedList = computed(() => {
+    const term = this.searchTerm().trim().toLowerCase();
+    const list = this.immunizedList();
+    if (!term) {
+      return list;
+    }
+    return list.filter(child =>
+      child.fullName.toLowerCase().includes(term) ||
+      child.purok.toLowerCase().includes(term)
+    );
+  });
 
   constructor(private router: Router, private cdr: ChangeDetectorRef) {
-    addIcons({ 'arrow-back-outline': arrowBackOutline, 'shield-checkmark-outline': shieldCheckmarkOutline });
+    addIcons({
+      'arrow-back-outline': arrowBackOutline,
+      'shield-checkmark-outline': shieldCheckmarkOutline
+    });
   }
 
   ngOnInit() {
@@ -38,25 +54,19 @@ export class FullyImmunizedPage implements OnInit {
       .then(res => res.json())
       .then(response => {
         if (response.success && response.data) {
-          this.immunizedList = response.data.map((child: any) => ({
+          const mapped = response.data.map((child: any) => ({
             id: child.id,
-            fullName: child.name,         
-            ageMonths: child.age,          
-            purok: child.purok,            
-            lastVaccine: 'Complete',       
+            fullName: child.name,
+            ageMonths: child.age,
+            purok: child.purok,
+            lastVaccine: 'Complete',
             dateCompleted: 'Verified'
           }));
+          this.immunizedList.set(mapped);
           this.cdr.detectChanges();
         }
       })
       .catch(err => console.error('Error fetching fully immunized children:', err));
-  }
-
-  get filteredImmunizedList() {
-    return this.immunizedList.filter(child =>
-      child.fullName.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-      child.purok.toLowerCase().includes(this.searchTerm.toLowerCase())
-    );
   }
 
   viewChildVaccineRecord(child: ImmunizedChild): void {

@@ -1,12 +1,8 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
-import { 
-  IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, 
-  IonButton, IonIcon, IonItem, IonCard, IonBadge, IonBackButton, ToastController, AlertController 
-} from '@ionic/angular';
+import { IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonIcon, IonCard, IonBadge, IonBackButton, ToastController, AlertController} from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { refreshOutline, trashOutline, archiveOutline } from 'ionicons/icons';
 
@@ -15,25 +11,10 @@ import { refreshOutline, trashOutline, archiveOutline } from 'ionicons/icons';
   templateUrl: './archive-schedule.page.html',
   styleUrls: ['./archive-schedule.page.scss'],
   standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    HttpClientModule,
-    IonHeader,
-    IonToolbar,
-    IonTitle,
-    IonContent,
-    IonButtons,
-    IonButton,
-    IonIcon,
-    IonItem,
-    IonCard,
-    IonBadge,
-    IonBackButton
-  ]
-})
-export class ArchiveSchedulePage implements OnInit {
-  archivedSchedules: any[] = [];
+  imports: [ CommonModule, HttpClientModule, IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonIcon, IonCard,IonBadge,IonBackButton]})
+
+  export class ArchiveSchedulePage implements OnInit {
+  archivedSchedules = signal<any[]>([]);
 
   constructor(
     private router: Router,
@@ -59,7 +40,7 @@ export class ArchiveSchedulePage implements OnInit {
     this.http.get<any>('http://localhost:8000/api/schedules/archived').subscribe({
       next: (res) => {
         if (res && res.success) {
-          this.archivedSchedules = res.data;
+          this.archivedSchedules.set(res.data || []);
           this.cdr.detectChanges();
         }
       },
@@ -72,16 +53,15 @@ export class ArchiveSchedulePage implements OnInit {
   openArchivedScheduleDetails(schedule: any): void {
     if (!schedule || !schedule.id) return;
     this.router.navigate(['/vaccine-sched'], {
-      state: { 
-        scheduleData: schedule, 
+      state: {
+        scheduleData: schedule,
         scheduleId: schedule.id,
-        isViewOnly: true 
+        isViewOnly: true
       }
     });
   }
 
-async restoreSchedule(scheduleOrEvent: any, maybeSchedule?: any) {
-
+  async restoreSchedule(scheduleOrEvent: any, maybeSchedule?: any) {
     const schedule = maybeSchedule ? maybeSchedule : scheduleOrEvent;
     if (scheduleOrEvent && typeof scheduleOrEvent.stopPropagation === 'function') {
       scheduleOrEvent.stopPropagation();
@@ -101,9 +81,9 @@ async restoreSchedule(scheduleOrEvent: any, maybeSchedule?: any) {
             this.http.put<any>(`http://localhost:8000/api/schedules/restore/${schedule.id}`, {}).subscribe({
               next: async (res) => {
                 if (res && res.success) {
-                  this.archivedSchedules = this.archivedSchedules.filter(s => s.id !== schedule.id);
+                  this.archivedSchedules.update(list => list.filter(s => s.id !== schedule.id));
                   this.cdr.detectChanges();
-                  
+
                   const toast = await this.toastController.create({
                     message: 'Schedule successfully restored to active list.',
                     duration: 3000,

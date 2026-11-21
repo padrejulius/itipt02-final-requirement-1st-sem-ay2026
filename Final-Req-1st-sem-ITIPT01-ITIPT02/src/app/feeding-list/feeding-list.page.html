@@ -18,8 +18,8 @@
     </div>
 
     <ion-searchbar 
-      [(ngModel)]="searchTerm" 
-      (ionInput)="filterFeedingList()" 
+      [ngModel]="searchTerm()"
+      (ngModelChange)="searchTerm.set($event)"
       placeholder="Search name or purok..." 
       class="ion-margin-bottom"
       animated="true">
@@ -27,7 +27,7 @@
 
     <!-- List of Children for Feeding Program -->
     <ion-list lines="none" class="child-list">
-      <ion-item *ngFor="let child of filteredFeedingList" class="child-item">
+      <ion-item *ngFor="let child of filteredFeedingList()" class="child-item">
         <div class="child-card-content">
           
           <div class="child-info">

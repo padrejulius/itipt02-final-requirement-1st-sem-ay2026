@@ -10,7 +10,7 @@
 <ion-content class="ion-padding" style="--background: #f4f6f8;">
   <div class="schedule-list-wrapper" style="max-width: 600px; margin: 0 auto;">
     
-    <ion-card *ngFor="let schedule of archivedSchedules" (click)="openArchivedScheduleDetails(schedule)" style="margin-bottom: 12px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); background: #ffffff; cursor: pointer;">
+    <ion-card *ngFor="let schedule of archivedSchedules()" (click)="openArchivedScheduleDetails(schedule)" style="margin-bottom: 12px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); background: #ffffff; cursor: pointer;">
       <div style="display: flex; align-items: flex-start; justify-content: space-between; padding: 15px;">
         
         <div style="flex-grow: 1;">
@@ -23,7 +23,6 @@
             {{ schedule.purok }}
           </ion-badge>
 
-          <!-- 2. Restore Badge / Button -->
           <ion-badge color="success" (click)="restoreSchedule($event, schedule)" style="cursor: pointer; margin: 0; width: 110px; height: 24px; text-align: center; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-weight: 600;">
             <ion-icon name="refresh-outline" style="margin-right: 2px; font-size: 11px;"></ion-icon> Restore
           </ion-badge>
@@ -32,7 +31,7 @@
       </div>
     </ion-card>
 
-    <div *ngIf="!archivedSchedules || archivedSchedules.length === 0" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 60vh; text-align: center; color: #8c8c8c;">
+    <div *ngIf="archivedSchedules().length === 0" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 60vh; text-align: center; color: #8c8c8c;">
       <ion-icon name="archive-outline" style="font-size: 64px; color: #b0b0b0; margin-bottom: 12px;"></ion-icon>
       <p style="font-size: 15px; margin: 0; font-weight: 500;">No archived schedules found.</p>
     </div>

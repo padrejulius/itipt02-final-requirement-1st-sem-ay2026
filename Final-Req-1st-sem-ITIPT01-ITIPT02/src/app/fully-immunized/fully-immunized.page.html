@@ -9,7 +9,12 @@
   </ion-toolbar>
 
   <ion-toolbar color="light" class="filter-toolbar">
-    <ion-searchbar [(ngModel)]="searchTerm" placeholder="Search immunized child..." class="custom-search"></ion-searchbar>
+    <ion-searchbar
+      [ngModel]="searchTerm()"
+      (ngModelChange)="searchTerm.set($event)"
+      placeholder="Search immunized child..."
+      class="custom-search">
+    </ion-searchbar>
   </ion-toolbar>
 </ion-header>
 
@@ -22,14 +27,14 @@
     </div>
 
     <ion-list lines="none" class="immunized-list">
-      <ion-item *ngFor="let child of filteredImmunizedList" class="immunized-item" (click)="viewChildVaccineRecord(child)" style="cursor: pointer;">
+      <ion-item *ngFor="let child of filteredImmunizedList()" class="immunized-item" (click)="viewChildVaccineRecord(child)" style="cursor: pointer;">
         <div class="card-content">
           <div class="avatar-box">
             <ion-icon name="shield-checkmark-outline" color="success"></ion-icon>
           </div>
           <div class="child-info">
             <h3>{{ child.fullName }}</h3>
-            <p>Age: {{ child.ageMonths }} years old | Purok: <strong>{{ child.purok }}</strong></p>
+            <p>Age: {{ child.ageMonths }} years old | <strong>{{ child.purok }}</strong></p>
             <p class="vaccine-info">Last Vaccine: <strong>{{ child.lastVaccine }}</strong> ({{ child.dateCompleted }})</p>
           </div>
           <div class="badge-box">
