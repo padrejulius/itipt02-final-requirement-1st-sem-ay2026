@@ -149,15 +149,19 @@ def archive_child(child_id: int):
     cursor = conn.cursor()
     try:
         cursor.execute("UPDATE children SET is_archived = 1 WHERE id = %s", (child_id,))
+        cursor.execute(
+            "UPDATE vaccine_schedules SET is_archived = 1 WHERE child_id = %s AND (is_archived = 0 OR is_archived IS NULL)",
+            (child_id,)
+        )
         conn.commit()
 
         activity_history.insert(0, {
-            "action": f"Archived child (ID: {child_id})",
+            "action": f"Archived child and active schedules (ID: {child_id})",
             "data": {"child_id": child_id},
             "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         })
 
-        return {"success": True, "message": "Child successfully archived"}
+        return {"success": True, "message": "Child and associated schedules successfully archived"}
     except mysql.connector.Error as err:
         conn.rollback()
         raise HTTPException(status_code=500, detail=f"Failed to archive child: {err}")
@@ -325,23 +329,73 @@ def save_full_vaccination(data: FullVaccinationPayload):
         cursor.close()
         conn.close()
 
+
+@app.get("/api/vaccine-schedules")
+def get_all_vaccine_schedules():
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        query = """
+            SELECT vs.*, c.is_archived AS child_is_archived, c.purok
+            FROM vaccine_schedules vs
+            LEFT JOIN children c ON vs.child_id = c.id
+            ORDER BY vs.id DESC
+        """
+        cursor.execute(query)
+        rows = cursor.fetchall()
+        data = []
+        for row in rows:
+            data.append({
+                "id": row["id"],
+                "childId": row["child_id"],
+                "child_id": row["child_id"],
+                "childName": row["child_name"],
+                "child_name": row["child_name"],
+                "vaccineName": row["vaccine_name"],
+                "vaccine_name": row["vaccine_name"],
+                "schedDate": str(row["sched_date"]) if row["sched_date"] else "",
+                "sched_date": str(row["sched_date"]) if row["sched_date"] else "",
+                "schedTime": str(row["sched_time"]) if row["sched_time"] else "",
+                "sched_time": str(row["sched_time"]) if row["sched_time"] else "",
+                "contact": row["contact"],
+                "remarks": row["remarks"],
+                "status": row["status"],
+                "is_archived": row.get("is_archived", 0),
+                "child_is_archived": row.get("child_is_archived", 0),
+                "purok": row.get("purok") or "Purok 1",
+            })
+        return {"success": True, "data": data}
+    except mysql.connector.Error as err:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch vaccine schedules: {err}")
+    finally:
+        cursor.close()
+        conn.close()
+
+
 @app.post("/api/vaccine-schedules")
 def add_vaccine_schedule(sched: VaccineScheduleModel):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     try:
+        cursor.execute("SELECT id, is_archived FROM children WHERE id = %s", (sched.childId,))
+        child_row = cursor.fetchone()
+        if child_row and child_row.get("is_archived") == 1:
+            return {
+                "success": False,
+                "message": "Cannot set schedule: this child record is archived.",
+            }
+
         check_query = """
             SELECT id FROM vaccine_schedules 
             WHERE child_id = %s 
-              AND vaccine_name = %s 
               AND (is_archived = 0 OR is_archived IS NULL)
         """
-        cursor.execute(check_query, (sched.childId, sched.vaccineName))
+        cursor.execute(check_query, (sched.childId,))
         existing = cursor.fetchone()
         if existing:
             return {
                 "success": False,
-                "message": "This child already has an active scheduled appointment for this vaccine. Please archive the old schedule first to create a new one.",
+                "message": "This child already has an active scheduled appointment. Please archive the old schedule first to create a new one.",
             }
 
         insert_query = """
@@ -388,6 +442,7 @@ def get_upcoming_schedules():
             FROM vaccine_schedules vs
             LEFT JOIN children c ON vs.child_id = c.id
             WHERE (vs.is_archived = 0 OR vs.is_archived IS NULL)
+              AND (c.is_archived = 0 OR c.is_archived IS NULL)
             ORDER BY vs.sched_date ASC, vs.sched_time ASC
         """
         cursor.execute(query)

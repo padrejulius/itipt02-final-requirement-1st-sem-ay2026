@@ -162,7 +162,10 @@ export class VaccinePage implements OnInit {
             name: child.name,
             age: child.age,
             purok: child.purok,
-            overallStatus: child.overall_status && child.overall_status.trim() !== '' ? child.overall_status : 'Select',
+            overallStatus:
+              child.overall_status && child.overall_status.trim() !== '' && child.overall_status !== 'Select'
+                ? child.overall_status
+                : 'Unvaccinated',
             vaccines: this.standardVaccineNames.map(name => ({
               vaccineName: name,
               completed: false,
@@ -192,6 +195,10 @@ export class VaccinePage implements OnInit {
 
     const selected: ChildProfile = {
       ...child,
+      overallStatus:
+        child.overallStatus && child.overallStatus.trim() !== '' && child.overallStatus !== 'Select'
+          ? child.overallStatus
+          : 'Unvaccinated',
       vaccines: resetVaccines
     };
 
@@ -217,8 +224,18 @@ export class VaccinePage implements OnInit {
             }
             return v;
           });
+
+          const allDone = hydratedVaccines.every(v => v.completed);
+          const anyDone = hydratedVaccines.some(v => v.completed);
+          const syncedStatus = allDone
+            ? 'Fully Immunized'
+            : anyDone
+              ? 'Partially Immunized'
+              : 'Unvaccinated';
+
           this.currentChild.set({
             ...selected,
+            overallStatus: syncedStatus,
             vaccines: hydratedVaccines
           });
           this.cdr.detectChanges();
@@ -227,13 +244,11 @@ export class VaccinePage implements OnInit {
       .catch(err => console.error('Error fetching child vaccinations:', err));
   }
 
-  updateOverallStatus(status: string) {
-    if (this.isViewOnly()) return;
+  updateOverallStatus(_status: string) {
     const active = this.currentChild();
     if (!active) return;
     this.currentChild.set({
-      ...active,
-      overallStatus: status
+      ...active
     });
   }
 

@@ -3,37 +3,41 @@
     <ion-buttons slot="start">
       <ion-back-button defaultHref="/archive"></ion-back-button>
     </ion-buttons>
-    <ion-title> Settings > Archive > Old Schedule </ion-title>
+    <ion-title>Settings &gt; Archive &gt; Old Schedule</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding" style="--background: #f4f6f8;">
-  <div class="schedule-list-wrapper" style="max-width: 600px; margin: 0 auto;">
-    
-    <ion-card *ngFor="let schedule of archivedSchedules()" (click)="openArchivedScheduleDetails(schedule)" style="margin-bottom: 12px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); background: #ffffff; cursor: pointer;">
-      <div style="display: flex; align-items: flex-start; justify-content: space-between; padding: 15px;">
-        
-        <div style="flex-grow: 1;">
-          <h3 style="margin: 0 0 4px 0; font-size: 16px; font-weight: bold; color: #333;">{{ schedule.childName }}</h3>
-          <p style="margin: 0; font-size: 13px; color: #666;">{{ schedule.vaccineType }} - Due: {{ schedule.date }}</p>
+<ion-content class="ion-padding archive-sched-content">
+  <div class="schedule-list-wrapper">
+
+    <ion-card
+      *ngFor="let schedule of archivedSchedules()"
+      (click)="openArchivedScheduleDetails(schedule)"
+      class="schedule-card"
+    >
+      <div class="schedule-card-content">
+
+        <div class="schedule-info">
+          <h3 class="schedule-title">{{ schedule.childName }}</h3>
+          <p class="schedule-meta">{{ schedule.vaccineType }} - Due: {{ schedule.date }}</p>
         </div>
 
-        <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px;">
-          <ion-badge color="primary" style="margin: 0; width: 110px; height: 24px; text-align: center; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-weight: 600;">
+        <div class="schedule-actions">
+          <ion-badge color="primary" class="purok-badge">
             {{ schedule.purok }}
           </ion-badge>
 
-          <ion-badge color="success" (click)="restoreSchedule($event, schedule)" style="cursor: pointer; margin: 0; width: 110px; height: 24px; text-align: center; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-weight: 600;">
-            <ion-icon name="refresh-outline" style="margin-right: 2px; font-size: 11px;"></ion-icon> Restore
+          <ion-badge color="success" (click)="restoreSchedule($event, schedule)" class="restore-badge">
+            <ion-icon name="refresh-outline" class="restore-icon"></ion-icon> Restore
           </ion-badge>
         </div>
 
       </div>
     </ion-card>
 
-    <div *ngIf="archivedSchedules().length === 0" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 60vh; text-align: center; color: #8c8c8c;">
-      <ion-icon name="archive-outline" style="font-size: 64px; color: #b0b0b0; margin-bottom: 12px;"></ion-icon>
-      <p style="font-size: 15px; margin: 0; font-weight: 500;">No archived schedules found.</p>
+    <div *ngIf="archivedSchedules().length === 0" class="empty-state">
+      <ion-icon name="archive-outline" class="empty-icon"></ion-icon>
+      <p class="empty-text">No archived schedules found.</p>
     </div>
 
   </div>

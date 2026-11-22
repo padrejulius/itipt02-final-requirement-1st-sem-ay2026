@@ -51,14 +51,14 @@
     </ion-card-content>
   </ion-card>
 
-  <ion-item class="ion-margin-bottom" *ngIf="currentChild() !== null && !isViewOnly()">
+  <ion-item class="ion-margin-bottom" *ngIf="currentChild() !== null && !isViewOnly()" style="pointer-events: none; opacity: 1;">
     <ion-select 
       label="Update Immunization Status" 
       labelPlacement="stacked" 
-      placeholder="Select"
       [ngModel]="currentChild()!.overallStatus"
-      (ngModelChange)="updateOverallStatus($event)">
-      <ion-select-option value="Select">Select</ion-select-option>
+      (ngModelChange)="updateOverallStatus($event)"
+      name="updateImmunizationStatus"
+      style="--color: #111827; opacity: 1;">
       <ion-select-option value="Unvaccinated">Unvaccinated</ion-select-option>
       <ion-select-option value="Partially Immunized">Partially Immunized</ion-select-option>
       <ion-select-option value="Fully Immunized">Fully Immunized</ion-select-option>

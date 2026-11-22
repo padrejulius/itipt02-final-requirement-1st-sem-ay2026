@@ -24,6 +24,10 @@
           labelPlacement="floating" 
           [ngModel]="searchQuery()"
           (ngModelChange)="onSearchQueryChange($event)"
+          (ionInput)="onSearchInput($event)"
+          (ionFocus)="onSearchFocus($event)"
+          (ionClear)="onSearchClear()"
+          (keydown.enter)="onSearchEnter($event)"
           name="searchQuery" 
           [readonly]="isViewOnly()"
           placeholder="Search..."
@@ -37,8 +41,8 @@
           *ngFor="let child of filteredChildren()" 
           (click)="selectChild(child)">
           <ion-label>
-            <h2>{{ child.name }}</h2>
-            <p>{{ child.purok }} | Guardian: {{ child.guardian }}</p>
+            <h2 [style.color]="!canScheduleChild(child) ? '#dc2626' : ''">{{ child.name }}</h2>
+            <p [style.color]="!canScheduleChild(child) ? '#dc2626' : ''">{{ child.purok }} | Guardian: {{ child.guardian }}</p>
           </ion-label>
         </ion-item>
       </ion-list>

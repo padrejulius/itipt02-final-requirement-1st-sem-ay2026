@@ -1,0 +1,87 @@
+.archive-background {
+  // Pwede mo ring lagyan ng custom background color/gradient dito kung gusto mo
+}
+
+.archive-wrapper {
+  // Add wrapper styling here if needed
+}
+
+.empty-state {
+  text-align: center;
+  margin-top: 50px;
+
+  .empty-icon {
+    font-size: 48px;
+    color: var(--ion-color-medium);
+  }
+}
+
+.archive-list {
+  .child-card {
+    margin-bottom: 12px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  }
+
+  .card-content {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 15px;
+  }
+
+  .card-info {
+    cursor: pointer;
+    flex-grow: 1;
+  }
+
+  .child-name {
+    margin: 0 0 4px 0;
+    font-size: 16px;
+    font-weight: bold;
+    color: #333;
+  }
+
+  .child-meta {
+    margin: 0;
+    font-size: 13px;
+    color: #666;
+  }
+
+  .child-measurements {
+    margin: 4px 0 0 0;
+    font-size: 12px;
+    color: #888;
+  }
+
+  .actions-column {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+  }
+
+  .status-badge {
+    margin: 0;
+    width: 160px;
+    text-align: center;
+    display: inline-block;
+    border-radius: 6px;
+  }
+
+  .restore-badge {
+    cursor: pointer;
+    padding: 6px 0;
+    font-weight: 600;
+    margin: 0;
+    width: 160px;
+    text-align: center;
+    display: inline-block;
+    border-radius: 6px;
+  }
+
+  .restore-icon {
+    vertical-align: middle;
+    margin-right: 2px;
+  }
+}

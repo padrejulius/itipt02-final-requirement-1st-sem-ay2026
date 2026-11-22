@@ -24,6 +24,9 @@ export class VaccineSchedPage implements OnInit {
   headerTitle = signal<string>('Vaccine Schedule');
 
   childrenList = signal<any[]>([]);
+  schedulesList = signal<any[]>([]);
+  private lastNotifiedKey: string = '';
+  private isToastShowing: boolean = false;
 
   filteredChildren = computed(() => {
     if (this.isViewOnly() || !this.isSearching()) {
@@ -65,6 +68,7 @@ export class VaccineSchedPage implements OnInit {
 
   ngOnInit(): void {
     this.fetchChildrenFromDatabase();
+    this.fetchSchedulesFromDatabase();
 
     const navigation = this.router.getCurrentNavigation();
     const navState = navigation?.extras?.state || history.state;
@@ -86,6 +90,106 @@ export class VaccineSchedPage implements OnInit {
         }
       }
     }
+  }
+
+  private isArchivedFlag(val: any): boolean {
+    return val === 1 || val === true || String(val).toLowerCase() === '1' || String(val).toLowerCase() === 'true';
+  }
+
+  private getChildScheduleArchiveState(child: any): { hasActiveSchedule: boolean; hasArchivedSchedule: boolean } {
+    const childId = child?.id;
+    const childName = String(child?.name || '').trim().toLowerCase();
+
+    const matchingSchedules = this.schedulesList().filter((s: any) => {
+      const schedChildId = s?.childId ?? s?.child_id;
+      if (childId !== undefined && childId !== null && schedChildId !== undefined && schedChildId !== null) {
+        return Number(schedChildId) === Number(childId);
+      }
+      const schedChildName = String(s?.childName ?? s?.child_name ?? '').trim().toLowerCase();
+      return childName !== '' && schedChildName === childName;
+    });
+
+    if (matchingSchedules.length === 0) {
+      return { hasActiveSchedule: false, hasArchivedSchedule: true };
+    }
+
+    const hasActiveSchedule = matchingSchedules.some((s: any) => {
+      const flag = s?.is_archived ?? s?.isArchived ?? 0;
+      return !this.isArchivedFlag(flag);
+    });
+
+    const hasArchivedSchedule = matchingSchedules.some((s: any) => {
+      const flag = s?.is_archived ?? s?.isArchived ?? 0;
+      return this.isArchivedFlag(flag);
+    });
+
+    return { hasActiveSchedule, hasArchivedSchedule };
+  }
+
+  canScheduleChild(child: any): boolean {
+    if (!child) return false;
+    const childArchived = this.isArchivedFlag(child?.is_archived ?? child?.isArchived ?? 0);
+    if (childArchived) {
+      return false;
+    }
+    const { hasActiveSchedule } = this.getChildScheduleArchiveState(child);
+    return !hasActiveSchedule;
+  }
+
+  private getBlockedScheduleMessage(child: any): string {
+    const childArchived = this.isArchivedFlag(child?.is_archived ?? child?.isArchived ?? 0);
+    if (childArchived) {
+      return `Cannot set schedule for ${child.name}: child record is currently archived.`;
+    }
+    return `Cannot set schedule for ${child.name}: this child already has an active schedule.`;
+  }
+
+  private checkSearchBarScheduleRule(rawQuery: string, isEnterPressed: boolean = false): void {
+    const trimmed = String(rawQuery || '').trim().toLowerCase();
+    if (!trimmed) {
+      this.lastNotifiedKey = '';
+      return;
+    }
+
+    // Kapag Enter ang pinindot, hanapin kahit partial match; kapag nagta-type pa lang, exact full name match lang
+    const matchedChild = isEnterPressed
+      ? this.childrenList().find((c: any) =>
+          String(c.name || '').trim().toLowerCase().includes(trimmed)
+        )
+      : this.childrenList().find((c: any) =>
+          String(c.name || '').trim().toLowerCase() === trimmed
+        );
+
+    if (matchedChild) {
+      if (!this.canScheduleChild(matchedChild)) {
+        const notifyKey = `${matchedChild.id ?? matchedChild.name}`;
+        if ((isEnterPressed || this.lastNotifiedKey !== notifyKey) && !this.isToastShowing) {
+          this.lastNotifiedKey = notifyKey;
+          this.presentToast(this.getBlockedScheduleMessage(matchedChild), 'danger');
+        }
+      } else {
+        this.lastNotifiedKey = '';
+      }
+    } else {
+      this.lastNotifiedKey = '';
+    }
+  }
+
+  fetchSchedulesFromDatabase(): void {
+    this.http.get<any>('http://localhost:8000/api/vaccine-schedules').subscribe({
+      next: (response) => {
+        if (response && response.success && Array.isArray(response.data)) {
+          this.schedulesList.set(response.data);
+          this.cdr.detectChanges();
+        } else if (Array.isArray(response)) {
+          this.schedulesList.set(response);
+          this.cdr.detectChanges();
+        }
+      },
+      error: (err) => {
+        console.error('Error fetching vaccine schedules:', err);
+      }
+    });
   }
 
   updateScheduleField(field: string, value: any): void {
@@ -137,6 +241,7 @@ export class VaccineSchedPage implements OnInit {
       next: (response) => {
         if (response.success && response.data) {
           this.childrenList.set(response.data);
+          this.cdr.detectChanges();
         }
       },
       error: (err) => {
@@ -148,11 +253,57 @@ export class VaccineSchedPage implements OnInit {
   onSearchQueryChange(value: string): void {
     this.searchQuery.set(value);
     if (this.isViewOnly()) return;
-    this.isSearching.set(value.trim() !== '');
+
+    const trimmed = String(value || '').trim().toLowerCase();
+    this.isSearching.set(trimmed !== '');
+    this.checkSearchBarScheduleRule(value, false);
+    this.cdr.detectChanges();
+  }
+
+  onSearchInput(event: any): void {
+    const val = event?.detail?.value ?? event?.target?.value ?? '';
+    this.searchQuery.set(val);
+    if (this.isViewOnly()) return;
+
+    const trimmed = String(val || '').trim().toLowerCase();
+    this.isSearching.set(trimmed !== '');
+    this.checkSearchBarScheduleRule(val, false);
+    this.cdr.detectChanges();
+  }
+
+  onSearchFocus(_event: any): void {
+    if (this.isViewOnly()) return;
+    const trimmed = String(this.searchQuery() || '').trim().toLowerCase();
+    if (trimmed) {
+      this.isSearching.set(true);
+      this.cdr.detectChanges();
+    }
+  }
+
+  onSearchClear(): void {
+    this.searchQuery.set('');
+    this.lastNotifiedKey = '';
+    this.isSearching.set(false);
+    this.cdr.detectChanges();
+  }
+
+  onSearchEnter(event: any): void {
+    event?.preventDefault?.();
+    if (this.isViewOnly()) return;
+    this.checkSearchBarScheduleRule(this.searchQuery(), true);
+    this.cdr.detectChanges();
   }
 
   selectChild(child: any): void {
     if (this.isViewOnly()) return;
+
+    if (!this.canScheduleChild(child)) {
+      this.lastNotifiedKey = `${child?.id ?? child?.name}`;
+      this.presentToast(this.getBlockedScheduleMessage(child), 'danger');
+      return;
+    }
+
+    this.lastNotifiedKey = '';
     this.schedule.update(current => ({
       ...current,
       childId: child.id,
@@ -161,16 +312,21 @@ export class VaccineSchedPage implements OnInit {
     }));
     this.searchQuery.set(child.name);
     this.isSearching.set(false);
+    this.cdr.detectChanges();
   }
 
   async presentToast(message: string, color: string = 'success') {
+    this.isToastShowing = true;
     const toast = await this.toastController.create({
       message: message,
-      duration: 2000,
+      duration: 2500,
       position: 'bottom',
       color: color,
       mode: 'ios',
       cssClass: 'custom-toast'
+    });
+    toast.onDidDismiss().then(() => {
+      this.isToastShowing = false;
     });
     await toast.present();
   }
@@ -182,6 +338,18 @@ export class VaccineSchedPage implements OnInit {
     if (!currentSchedule.vaccineName || !currentSchedule.schedDate || !currentSchedule.schedTime) {
       this.presentToast('Please fill in all required fields.', 'danger');
       return;
+    }
+
+    if (!this.isEditMode()) {
+      const matchedChild = this.childrenList().find((c: any) =>
+        (currentSchedule.childId !== null && Number(c.id) === Number(currentSchedule.childId)) ||
+        String(c.name || '').trim().toLowerCase() === String(currentSchedule.childName || '').trim().toLowerCase()
+      );
+
+      if (matchedChild && !this.canScheduleChild(matchedChild)) {
+        this.presentToast(this.getBlockedScheduleMessage(matchedChild), 'warning');
+        return;
+      }
     }
 
     if (this.isEditMode()) {
@@ -208,6 +376,7 @@ export class VaccineSchedPage implements OnInit {
           }
 
           await this.presentToast(`Vaccine schedule successfully saved for ${currentSchedule.childName}!`);
+          this.fetchSchedulesFromDatabase();
           this.resetForm();
         },
         error: async (err) => {
@@ -222,6 +391,7 @@ export class VaccineSchedPage implements OnInit {
   resetForm(): void {
     if (this.isViewOnly()) return;
     this.searchQuery.set('');
+    this.lastNotifiedKey = '';
     this.schedule.set({
       childId: null,
       childName: '',

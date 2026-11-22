@@ -53,12 +53,13 @@
         </ion-select>
       </ion-item>
 
-      <!-- Age (in months) -->
       <ion-item class="rounded-item ion-margin-bottom">
         <ion-input 
           type="number" 
-          label="Age" 
+          label="Age (years)" 
           labelPlacement="floating" 
+          min="1"
+          max="12"
           [ngModel]="child().age"
           (ngModelChange)="updateChildField('age', $event)"
           name="age" 
@@ -143,15 +144,14 @@
         </ion-input>
       </ion-item>
 
-      <!-- Nutritional Status -->
-      <ion-item class="rounded-item ion-margin-bottom">
+      <ion-item class="rounded-item ion-margin-bottom" style="pointer-events: none; opacity: 1;">
         <ion-select 
           label="Nutritional Status" 
           labelPlacement="floating" 
           [ngModel]="child().nutritionalStatus"
           (ngModelChange)="updateChildField('nutritionalStatus', $event)"
-          name="nutritionalStatus" 
-          [disabled]="isViewMode()"
+          name="nutritionalStatus"
+          style="--color: #111827; opacity: 1;"
           required>
           <ion-select-option value="Normal">Normal</ion-select-option>
           <ion-select-option value="Underweight">Underweight</ion-select-option>

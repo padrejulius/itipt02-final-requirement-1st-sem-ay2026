@@ -67,11 +67,51 @@ export class AddChildPage implements OnInit {
     });
   }
 
+  private computeNutritionalStatus(ageYearsVal: any, weightVal: any): string {
+    const ageYears = Number(ageYearsVal);
+    const weight = Number(weightVal);
+
+    if (!ageYears || ageYears <= 0 || !weight || weight <= 0) {
+      return '';
+    }
+
+    const clampedYears = Math.min(Math.max(ageYears, 1), 12);
+    const ageMonths = clampedYears * 12;
+
+    const expectedWeight =
+      ageMonths <= 12
+        ? 3.3 + ageMonths * 0.55
+        : ageMonths <= 60
+          ? 9.6 + (ageMonths - 12) * 0.18
+          : 18.24 + (ageMonths - 60) * 0.25;
+
+    const ratio = weight / expectedWeight;
+
+    if (ratio < 0.7) {
+      return 'Severely Underweight';
+    }
+    if (ratio < 0.85) {
+      return 'Underweight';
+    }
+    if (ratio > 1.2) {
+      return 'Overweight';
+    }
+    return 'Normal';
+  }
+
   updateChildField(field: string, value: any): void {
-    this.child.update(current => ({
-      ...current,
-      [field]: value
-    }));
+    this.child.update(current => {
+      const updated = {
+        ...current,
+        [field]: value
+      };
+
+      if (field === 'age' || field === 'weight') {
+        updated.nutritionalStatus = this.computeNutritionalStatus(updated.age, updated.weight);
+      }
+
+      return updated;
+    });
   }
 
   loadChildFromServer(id: number): void {
