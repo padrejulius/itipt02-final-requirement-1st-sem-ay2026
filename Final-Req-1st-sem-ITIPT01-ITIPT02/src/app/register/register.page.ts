@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -10,15 +10,16 @@ import { personAddOutline, checkmarkCircleOutline } from 'ionicons/icons';
   selector: 'app-register',
   templateUrl: './register.page.html',
   styleUrls: ['./register.page.scss'],
+  standalone: true,
   imports: [CommonModule, FormsModule, IonContent, IonInput, IonButton, IonIcon]
 })
 export class RegisterPage implements OnInit {
-  registrationData = {
+  registrationData = signal({
     fullName: '',
     username: '',
     password: '',
     confirmPassword: ''
-  };
+  });
 
   constructor(
     private router: Router,
@@ -37,9 +38,17 @@ export class RegisterPage implements OnInit {
     }
   }
 
+  updateField(field: 'fullName' | 'username' | 'password' | 'confirmPassword', value: string): void {
+    this.registrationData.update(current => ({
+      ...current,
+      [field]: value
+    }));
+  }
+
   async onRegister(): Promise<void> {
-    // Validation check para sa magkatugmang password
-    if (this.registrationData.password !== this.registrationData.confirmPassword) {
+    const currentData = this.registrationData();
+
+    if (currentData.password !== currentData.confirmPassword) {
       const toast = await this.toastController.create({
         message: 'Passwords do not match. Please check and try again.',
         duration: 2500,
@@ -50,7 +59,6 @@ export class RegisterPage implements OnInit {
       return;
     }
 
-    // Success notification
     const toast = await this.toastController.create({
       message: 'Account created successfully!',
       duration: 2000,
@@ -59,7 +67,6 @@ export class RegisterPage implements OnInit {
     });
     await toast.present();
 
-    // Navigate pabalik sa Login
     this.router.navigate(['/login']);
   }
 

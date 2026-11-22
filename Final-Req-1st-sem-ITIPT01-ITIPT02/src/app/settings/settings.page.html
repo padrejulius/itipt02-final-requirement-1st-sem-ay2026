@@ -18,20 +18,19 @@
         <ion-icon name="person-circle-outline" color="success"></ion-icon>
       </div>
       <div class="profile-info">
-        <h3>{{ healthWorkerName }}</h3>
+        <h3>{{ healthWorkerName() }}</h3>
         <p class="role-text">Barangay Health Worker (Admin)</p>
-        <p class="station-text"><ion-icon name="location-outline"></ion-icon> Assigned: {{ assignedStation }}</p>
+        <p class="station-text"><ion-icon name="location-outline"></ion-icon> Assigned: {{ assignedStation() }}</p>
       </div>
     </div>
 
-    <!-- App Preferences Section -->
     <div class="section-container">
       <h4>Preferences</h4>
       
       <ion-item class="setting-item">
         <ion-icon name="moon-outline" slot="start"></ion-icon>
         <ion-label>Dark Mode</ion-label>
-        <ion-toggle slot="end" [(ngModel)]="darkMode" (ionChange)="toggleDarkMode($event)"></ion-toggle>
+        <ion-toggle slot="end" [ngModel]="darkMode()" (ionChange)="toggleDarkMode($event)"></ion-toggle>
       </ion-item>
 
       <ion-item class="setting-item clickable-item" routerLink="/archive" detail="true">

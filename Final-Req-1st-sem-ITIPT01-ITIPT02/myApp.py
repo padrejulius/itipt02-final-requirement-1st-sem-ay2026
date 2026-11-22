@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import mysql.connector
 from typing import Optional, List
-from datetime import datetime, timedelta
+from datetime import datetime
 
 app = FastAPI(title="NutriBantay API System")
 
@@ -17,13 +17,19 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+def serialize_model(model_obj):
+    if hasattr(model_obj, "model_dump"):
+        return model_obj.model_dump()
+    return model_obj.dict()
+
 def get_db_connection():
     try:
         connection = mysql.connector.connect(
             host="localhost",
             user="root",
             password="",
-            database="nutribantay_db"
+            database="nutribantay_db",
+            connection_timeout=10,
         )
         return connection
     except mysql.connector.Error as err:
@@ -58,10 +64,9 @@ def read_root():
         "status": "Online",
         "system": "NutriBantay FastAPI Backend Connection Active",
         "total_queries": len(activity_history),
-        "history": activity_history
+        "history": activity_history,
     }
 
-    
 # ==========================================
 # CHILDREN ENDPOINTS
 # ==========================================
@@ -77,8 +82,16 @@ def add_child(child: ChildModel):
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """
         values = (
-            child.name, child.dob, child.gender, child.age, child.guardian,
-            child.contact, child.purok, child.weight, child.height, child.nutritionalStatus
+            child.name,
+            child.dob,
+            child.gender,
+            child.age,
+            child.guardian,
+            child.contact,
+            child.purok,
+            child.weight,
+            child.height,
+            child.nutritionalStatus,
         )
         cursor.execute(query, values)
         conn.commit()
@@ -86,11 +99,15 @@ def add_child(child: ChildModel):
 
         activity_history.insert(0, {
             "action": f"Added new child: {child.name}",
-            "data": child.dict(),
-            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            "data": serialize_model(child),
+            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         })
 
-        return {"success": True, "message": "Child record successfully saved to database!", "child_id": child_id}
+        return {
+            "success": True,
+            "message": "Child record successfully saved to database!",
+            "child_id": child_id,
+        }
     except mysql.connector.Error as err:
         conn.rollback()
         raise HTTPException(status_code=500, detail=f"Failed to insert child record: {err}")
@@ -137,7 +154,7 @@ def archive_child(child_id: int):
         activity_history.insert(0, {
             "action": f"Archived child (ID: {child_id})",
             "data": {"child_id": child_id},
-            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         })
 
         return {"success": True, "message": "Child successfully archived"}
@@ -191,16 +208,25 @@ def update_child(child_id: int, child: ChildModel):
             WHERE id = %s
         """
         values = (
-            child.name, child.dob, child.gender, child.age, child.guardian,
-            child.contact, child.purok, child.weight, child.height, child.nutritionalStatus, child_id
+            child.name,
+            child.dob,
+            child.gender,
+            child.age,
+            child.guardian,
+            child.contact,
+            child.purok,
+            child.weight,
+            child.height,
+            child.nutritionalStatus,
+            child_id,
         )
         cursor.execute(query, values)
         conn.commit()
 
         activity_history.insert(0, {
             "action": f"Updated child record: {child.name} (ID: {child_id})",
-            "data": child.dict(),
-            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            "data": serialize_model(child),
+            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         })
 
         return {"success": True, "message": "Child record successfully updated!"}
@@ -222,7 +248,7 @@ def restore_child(child_id: int):
         activity_history.insert(0, {
             "action": f"Restored child (ID: {child_id})",
             "data": {"child_id": child_id},
-            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         })
 
         return {"success": True, "message": "Child successfully restored"}
@@ -277,16 +303,18 @@ def save_full_vaccination(data: FullVaccinationPayload):
                 ON DUPLICATE KEY UPDATE status = VALUES(status), date_given = VALUES(date_given)
             """
             cursor.execute(upsert_vaccine_query, (
-                data.child_id, vac.vaccine_name, 
-                vac.date_given if vac.date_given else None, vac.status
+                data.child_id,
+                vac.vaccine_name,
+                vac.date_given if vac.date_given else None,
+                vac.status,
             ))
 
         conn.commit()
 
         activity_history.insert(0, {
             "action": f"Saved full vaccination for child ID: {data.child_id}",
-            "data": data.dict(),
-            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            "data": serialize_model(data),
+            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         })
 
         return {"success": True, "message": "Overall status and vaccination records successfully saved!"}
@@ -310,11 +338,10 @@ def add_vaccine_schedule(sched: VaccineScheduleModel):
         """
         cursor.execute(check_query, (sched.childId, sched.vaccineName))
         existing = cursor.fetchone()
-        
         if existing:
             return {
-                "success": False, 
-                "message": "This child already has an active scheduled appointment for this vaccine. Please archive the old schedule first to create a new one."
+                "success": False,
+                "message": "This child already has an active scheduled appointment for this vaccine. Please archive the old schedule first to create a new one.",
             }
 
         insert_query = """
@@ -323,8 +350,14 @@ def add_vaccine_schedule(sched: VaccineScheduleModel):
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, 0)
         """
         values = (
-            sched.childId, sched.childName, sched.vaccineName,
-            sched.schedDate, sched.schedTime, sched.contact, sched.remarks, sched.status
+            sched.childId,
+            sched.childName,
+            sched.vaccineName,
+            sched.schedDate,
+            sched.schedTime,
+            sched.contact,
+            sched.remarks,
+            sched.status,
         )
         cursor.execute(insert_query, values)
         conn.commit()
@@ -332,8 +365,8 @@ def add_vaccine_schedule(sched: VaccineScheduleModel):
 
         activity_history.insert(0, {
             "action": f"Added vaccine schedule for {sched.childName}",
-            "data": sched.dict(),
-            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            "data": serialize_model(sched),
+            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         })
 
         return {"success": True, "message": "Vaccine schedule successfully saved!", "schedule_id": schedule_id}
@@ -359,7 +392,6 @@ def get_upcoming_schedules():
         """
         cursor.execute(query)
         rows = cursor.fetchall()
-        
         data = []
         for row in rows:
             data.append({
@@ -372,7 +404,7 @@ def get_upcoming_schedules():
                 "contact": row["contact"],
                 "remarks": row["remarks"],
                 "status": row["status"],
-                "purok": row.get("purok") or "Purok 1"
+                "purok": row.get("purok") or "Purok 1",
             })
         return {"success": True, "data": data}
     except mysql.connector.Error as err:
@@ -395,7 +427,6 @@ def get_archived_schedules():
         """
         cursor.execute(query)
         rows = cursor.fetchall()
-        
         data = []
         for row in rows:
             data.append({
@@ -404,7 +435,7 @@ def get_archived_schedules():
                 "childName": row["child_name"],
                 "vaccineType": row["vaccine_name"],
                 "date": str(row["sched_date"]) if row["sched_date"] else "",
-                "purok": row.get("purok") or "Purok 1"
+                "purok": row.get("purok") or "Purok 1",
             })
         return {"success": True, "data": data}
     except mysql.connector.Error as err:
@@ -424,7 +455,7 @@ def archive_schedule(schedule_id: int):
         activity_history.insert(0, {
             "action": f"Archived schedule ID: {schedule_id}",
             "data": {"schedule_id": schedule_id},
-            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         })
 
         return {"success": True, "message": "Schedule successfully archived"}
@@ -446,7 +477,7 @@ def restore_schedule(schedule_id: int):
         activity_history.insert(0, {
             "action": f"Restored schedule ID: {schedule_id}",
             "data": {"schedule_id": schedule_id},
-            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         })
 
         return {"success": True, "message": "Schedule restored successfully"}
@@ -466,7 +497,6 @@ def get_schedule_by_id(schedule_id: int):
         schedule = cursor.fetchone()
         if not schedule:
             return {"success": False, "message": "Schedule not found"}
-        
         data = {
             "id": schedule["id"],
             "childId": schedule["child_id"],
@@ -477,7 +507,7 @@ def get_schedule_by_id(schedule_id: int):
             "sched_time": str(schedule["sched_time"]) if schedule["sched_time"] else "",
             "contact": schedule["contact"],
             "remarks": schedule["remarks"],
-            "status": schedule["status"]
+            "status": schedule["status"],
         }
         return {"success": True, "data": data}
     except mysql.connector.Error as err:
@@ -514,7 +544,7 @@ def update_vaccine_schedule(schedule_id: int, payload: dict):
         activity_history.insert(0, {
             "action": f"Updated vaccine schedule ID: {schedule_id}",
             "data": payload,
-            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         })
 
         return {"success": True, "message": "Schedule updated successfully"}

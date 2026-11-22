@@ -1,5 +1,5 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
-import { Router, RouterLink, ActivatedRoute } from '@angular/router';
+import { Component, OnInit, ChangeDetectorRef, signal, computed } from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
@@ -12,62 +12,53 @@ import { calendarOutline } from 'ionicons/icons';
   templateUrl: './vaccine-sched.page.html',
   styleUrls: ['./vaccine-sched.page.scss'],
   standalone: true,
-  imports: [
-    CommonModule, 
-    FormsModule, 
-    HttpClientModule,
-    IonContent, 
-    IonHeader, 
-    IonToolbar, 
-    IonTitle, 
-    IonButtons, 
-    IonBackButton, 
-    IonItem, 
-    IonSelect, 
-    IonSelectOption, 
-    IonInput, 
-    IonButton, 
-    IonIcon, 
-    IonList,
-    IonLabel,
-    RouterLink
-  ]
-})
+  imports: [ CommonModule, FormsModule, HttpClientModule, IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton, IonItem, IonSelect, IonSelectOption, IonInput, IonButton, IonIcon, IonList, IonLabel, RouterLink ] })
+
 export class VaccineSchedPage implements OnInit {
-  searchQuery: string = '';
-  isSearching: boolean = false;
-  isEditMode: boolean = false; 
-  scheduleId: any = null;     
+  searchQuery = signal<string>('');
+  isSearching = signal<boolean>(false);
+  isEditMode = signal<boolean>(false);
+  scheduleId = signal<any>(null);
 
-  // Mga variable para sa View-Only / Old Schedule mode
-  isViewOnly: boolean = false;
-  headerTitle: string = 'Vaccine Schedule';
+  isViewOnly = signal<boolean>(false);
+  headerTitle = signal<string>('Vaccine Schedule');
 
-  childrenList: any[] = [];
-  filteredChildren: any[] = [];
+  childrenList = signal<any[]>([]);
 
-  schedule = {
+  filteredChildren = computed(() => {
+    if (this.isViewOnly() || !this.isSearching()) {
+      return [];
+    }
+    const query = this.searchQuery().trim().toLowerCase();
+    if (!query) {
+      return [];
+    }
+    return this.childrenList().filter(child =>
+      String(child.name).toLowerCase().includes(query)
+    );
+  });
+
+  schedule = signal({
     childId: null as number | null,
     childName: '',
     vaccineName: '',
-    schedDate: '', 
-    schedTime: '', 
+    schedDate: '',
+    schedTime: '',
     contact: '',
     remarks: '',
     status: 'Scheduled'
-  };
+  });
 
-  get submitButtonText(): string {
-    if (this.isViewOnly) return '';
-    return this.isEditMode ? 'UPDATE SCHEDULE' : 'SET SCHEDULE & NOTIFY';
-  }
+  submitButtonText = computed(() => {
+    if (this.isViewOnly()) return '';
+    return this.isEditMode() ? 'UPDATE SCHEDULE' : 'SET SCHEDULE & NOTIFY';
+  });
 
   constructor(
-    private router: Router, 
-    private http: HttpClient, 
+    private router: Router,
+    private http: HttpClient,
     private cdr: ChangeDetectorRef,
-    private toastController: ToastController,
-    private route: ActivatedRoute
+    private toastController: ToastController
   ) {
     addIcons({ 'calendar-outline': calendarOutline });
   }
@@ -80,21 +71,28 @@ export class VaccineSchedPage implements OnInit {
 
     if (navState) {
       if (navState['isViewOnly']) {
-        this.isViewOnly = true;
-        this.headerTitle = 'Old Schedule'; // <--- Ginawang "Old Schedule" ang header
+        this.isViewOnly.set(true);
+        this.headerTitle.set('Old Schedule');
       }
 
       if (navState['scheduleData'] || navState['scheduleId']) {
         const data = navState['scheduleData'];
-        this.scheduleId = data?.id || navState['scheduleId'];
-        this.isEditMode = true;
+        const id = data?.id || navState['scheduleId'];
+        this.scheduleId.set(id);
+        this.isEditMode.set(true);
 
-        if (this.scheduleId) {
-          // Hihilain nito ang buong kumpletong detalye mula sa database
-          this.fetchScheduleDetails(this.scheduleId);
+        if (id) {
+          this.fetchScheduleDetails(id);
         }
       }
     }
+  }
+
+  updateScheduleField(field: string, value: any): void {
+    this.schedule.update(current => ({
+      ...current,
+      [field]: value
+    }));
   }
 
   fetchScheduleDetails(id: any): void {
@@ -102,7 +100,7 @@ export class VaccineSchedPage implements OnInit {
       next: (res) => {
         if (res && res.success && res.data) {
           const d = res.data;
-          
+
           let formattedTime = '';
           const rawTime = d.schedTime || d.sched_time || '';
           if (rawTime) {
@@ -113,17 +111,18 @@ export class VaccineSchedPage implements OnInit {
             }
           }
 
-          this.schedule = {
+          const childName = d.childName || d.child_name || '';
+          this.schedule.set({
             childId: d.childId || d.child_id || null,
-            childName: d.childName || d.child_name || '',
+            childName: childName,
             vaccineName: d.vaccineName || d.vaccine_name || '',
             schedDate: d.schedDate || d.sched_date || '',
             schedTime: formattedTime,
             contact: d.contact || '',
             remarks: d.remarks || '',
             status: d.status || 'Scheduled'
-          };
-          this.searchQuery = this.schedule.childName;
+          });
+          this.searchQuery.set(childName);
           this.cdr.detectChanges();
         }
       },
@@ -137,7 +136,7 @@ export class VaccineSchedPage implements OnInit {
     this.http.get<any>('http://localhost:8000/api/children').subscribe({
       next: (response) => {
         if (response.success && response.data) {
-          this.childrenList = response.data;
+          this.childrenList.set(response.data);
         }
       },
       error: (err) => {
@@ -146,26 +145,22 @@ export class VaccineSchedPage implements OnInit {
     });
   }
 
-  filterChildren(): void {
-    if (this.isViewOnly) return;
-    if (this.searchQuery.trim() === '') {
-      this.filteredChildren = [];
-      this.isSearching = false;
-      return;
-    }
-    this.isSearching = true;
-    this.filteredChildren = this.childrenList.filter(child =>
-      String(child.name).toLowerCase().includes(this.searchQuery.toLowerCase())
-    );
+  onSearchQueryChange(value: string): void {
+    this.searchQuery.set(value);
+    if (this.isViewOnly()) return;
+    this.isSearching.set(value.trim() !== '');
   }
 
   selectChild(child: any): void {
-    if (this.isViewOnly) return;
-    this.schedule.childId = child.id;
-    this.schedule.childName = child.name;
-    this.schedule.contact = child.contact || ''; 
-    this.searchQuery = child.name; 
-    this.isSearching = false; 
+    if (this.isViewOnly()) return;
+    this.schedule.update(current => ({
+      ...current,
+      childId: child.id,
+      childName: child.name,
+      contact: child.contact || ''
+    }));
+    this.searchQuery.set(child.name);
+    this.isSearching.set(false);
   }
 
   async presentToast(message: string, color: string = 'success') {
@@ -181,21 +176,22 @@ export class VaccineSchedPage implements OnInit {
   }
 
   saveVaccineSchedule(): void {
-    if (this.isViewOnly) return; // Bawal mag-save kung view-only
+    if (this.isViewOnly()) return;
 
-    if (!this.schedule.vaccineName || !this.schedule.schedDate || !this.schedule.schedTime) {
+    const currentSchedule = this.schedule();
+    if (!currentSchedule.vaccineName || !currentSchedule.schedDate || !currentSchedule.schedTime) {
       this.presentToast('Please fill in all required fields.', 'danger');
       return;
     }
 
-    if (this.isEditMode) {
-      this.http.put(`http://localhost:8000/api/vaccine-schedules/update/${this.scheduleId}`, this.schedule).subscribe({
+    if (this.isEditMode()) {
+      this.http.put(`http://localhost:8000/api/vaccine-schedules/update/${this.scheduleId()}`, currentSchedule).subscribe({
         next: async (response: any) => {
           if (response && response.success === false) {
             await this.presentToast(response.message, 'warning');
             return;
           }
-          await this.presentToast(`Vaccine schedule successfully updated for ${this.schedule.childName}!`);
+          await this.presentToast(`Vaccine schedule successfully updated for ${currentSchedule.childName}!`);
           this.router.navigate(['/admin-home']);
         },
         error: async (err) => {
@@ -204,40 +200,39 @@ export class VaccineSchedPage implements OnInit {
         }
       });
     } else {
-      this.http.post('http://localhost:8000/api/vaccine-schedules', this.schedule).subscribe({
+      this.http.post('http://localhost:8000/api/vaccine-schedules', currentSchedule).subscribe({
         next: async (response: any) => {
-          // Dito natin sinasalo ang duplicate message galing sa backend
           if (response && response.success === false) {
-            await this.presentToast(response.message, 'warning'); // Lalabas ang English toast notification
+            await this.presentToast(response.message, 'warning');
             return;
           }
-          
-          await this.presentToast(`Vaccine schedule successfully saved for ${this.schedule.childName}!`);
-          this.resetForm(); // Magre-reset ang fields kapag successful
+
+          await this.presentToast(`Vaccine schedule successfully saved for ${currentSchedule.childName}!`);
+          this.resetForm();
         },
         error: async (err) => {
           console.error('Error saving schedule:', err);
-          await this.presentToast('An error occurred while saving to the database.', 'danger');
+          const errorMsg = err.error?.detail || 'An error occurred while saving to the database.';
+          await this.presentToast(errorMsg, 'danger');
         }
       });
     }
   }
 
   resetForm(): void {
-    if (this.isViewOnly) return;
-    this.searchQuery = '';
-    this.schedule = {
+    if (this.isViewOnly()) return;
+    this.searchQuery.set('');
+    this.schedule.set({
       childId: null,
       childName: '',
       vaccineName: '',
-      schedDate: '', 
-      schedTime: '', 
+      schedDate: '',
+      schedTime: '',
       contact: '',
       remarks: '',
       status: 'Scheduled'
-    };
-    this.filteredChildren = [];
-    this.isSearching = false;
+    });
+    this.isSearching.set(false);
     this.cdr.detectChanges();
   }
 }

@@ -1,9 +1,9 @@
 <ion-header>
   <ion-toolbar color="success">
     <ion-buttons slot="start">
-      <ion-back-button [defaultHref]="isViewOnly ? '/archive-schedule' : '/admin-home'"></ion-back-button>
+      <ion-back-button [defaultHref]="isViewOnly() ? '/archive-schedule' : '/admin-home'"></ion-back-button>
     </ion-buttons>
-    <ion-title>{{ headerTitle }}</ion-title>
+    <ion-title>{{ headerTitle() }}</ion-title>
   </ion-toolbar>
 </ion-header>
 
@@ -11,29 +11,30 @@
   <div class="form-wrapper">
     
     <div class="section-header">
-      <h2>{{ isViewOnly ? 'Archived Immunization Record' : 'Schedule Patient Immunization' }}</h2>
-      <p>{{ isViewOnly ? 'Viewing past recorded schedule in read-only mode.' : 'Set vaccine appointments, time, and notify guardians.' }}</p>
+      <h2>{{ isViewOnly() ? 'Archived Immunization Record' : 'Schedule Patient Immunization' }}</h2>
+      <p>{{ isViewOnly() ? 'Viewing past recorded schedule in read-only mode.' : 'Set vaccine appointments, time, and notify guardians.' }}</p>
     </div>
 
     <form (ngSubmit)="saveVaccineSchedule()">
       
-      <ion-item class="rounded-item ion-margin-bottom" [disabled]="isViewOnly">
+      <!-- Search Child / Patient Input Field -->
+      <ion-item class="rounded-item ion-margin-bottom" [disabled]="isViewOnly()">
         <ion-input 
           label="Search name..." 
           labelPlacement="floating" 
-          [(ngModel)]="searchQuery" 
+          [ngModel]="searchQuery()"
+          (ngModelChange)="onSearchQueryChange($event)"
           name="searchQuery" 
-          (ionInput)="filterChildren()"
-          [readonly]="isViewOnly"
-          placeholder="Type child's name from database..."
+          [readonly]="isViewOnly()"
+          placeholder="Search..."
           required>
         </ion-input>
       </ion-item>
 
-      <ion-list *ngIf="!isViewOnly && filteredChildren.length > 0 && isSearching" class="search-results-list">
+      <ion-list *ngIf="!isViewOnly() && filteredChildren().length > 0 && isSearching()" class="search-results-list">
         <ion-item 
           button 
-          *ngFor="let child of filteredChildren" 
+          *ngFor="let child of filteredChildren()" 
           (click)="selectChild(child)">
           <ion-label>
             <h2>{{ child.name }}</h2>
@@ -43,13 +44,14 @@
       </ion-list>
 
       <!-- Vaccine Type Selection -->
-      <ion-item class="rounded-item ion-margin-bottom" [disabled]="isViewOnly">
+      <ion-item class="rounded-item ion-margin-bottom" [disabled]="isViewOnly()">
         <ion-select 
           label="Vaccine Type" 
           labelPlacement="floating" 
-          [(ngModel)]="schedule.vaccineName" 
+          [ngModel]="schedule().vaccineName"
+          (ngModelChange)="updateScheduleField('vaccineName', $event)"
           name="vaccineName" 
-          [disabled]="isViewOnly"
+          [disabled]="isViewOnly()"
           required>
           <ion-select-option value="BCG Vaccine">BCG (Tuberculosis)</ion-select-option>
           <ion-select-option value="Hepatitis B (Dose 1)">Hepatitis B (Dose 1)</ion-select-option>
@@ -61,66 +63,71 @@
       </ion-item>
 
       <!-- Appointment Date -->
-      <ion-item class="rounded-item ion-margin-bottom" [disabled]="isViewOnly">
+      <ion-item class="rounded-item ion-margin-bottom" [disabled]="isViewOnly()">
         <ion-input 
           type="date" 
           label="Appointment Date" 
           labelPlacement="floating" 
-          [(ngModel)]="schedule.schedDate" 
+          [ngModel]="schedule().schedDate"
+          (ngModelChange)="updateScheduleField('schedDate', $event)"
           name="schedDate" 
-          [readonly]="isViewOnly"
+          [readonly]="isViewOnly()"
           required>
         </ion-input>
       </ion-item>
 
       <!-- Appointment Time -->
-      <ion-item class="rounded-item ion-margin-bottom" [disabled]="isViewOnly">
+      <ion-item class="rounded-item ion-margin-bottom" [disabled]="isViewOnly()">
         <ion-input 
           type="time" 
           label="Appointment Time" 
           labelPlacement="floating" 
-          [(ngModel)]="schedule.schedTime" 
+          [ngModel]="schedule().schedTime"
+          (ngModelChange)="updateScheduleField('schedTime', $event)"
           name="schedTime" 
-          [readonly]="isViewOnly"
+          [readonly]="isViewOnly()"
           required>
         </ion-input>
       </ion-item>
 
       <!-- Guardian Contact Number -->
-      <ion-item class="rounded-item ion-margin-bottom" [disabled]="isViewOnly">
+      <ion-item class="rounded-item ion-margin-bottom" [disabled]="isViewOnly()">
         <ion-input 
           type="tel" 
           label="Guardian Contact Number" 
           labelPlacement="floating" 
-          [(ngModel)]="schedule.contact" 
+          [ngModel]="schedule().contact"
+          (ngModelChange)="updateScheduleField('contact', $event)"
           name="contact" 
-          [readonly]="isViewOnly"
+          [readonly]="isViewOnly()"
           placeholder="09XXXXXXXXX"
           required>
         </ion-input>
       </ion-item>
 
       <!-- Health Remarks / Vital Notes -->
-      <ion-item class="rounded-item ion-margin-bottom" [disabled]="isViewOnly">
+      <ion-item class="rounded-item ion-margin-bottom" [disabled]="isViewOnly()">
         <ion-input 
           type="text" 
           label="Health Remarks / Vital Notes" 
           labelPlacement="floating" 
-          [(ngModel)]="schedule.remarks" 
+          [ngModel]="schedule().remarks"
+          (ngModelChange)="updateScheduleField('remarks', $event)"
           name="remarks" 
-          [readonly]="isViewOnly"
+          [readonly]="isViewOnly()"
           placeholder="e.g. Check weight & fever status">
         </ion-input>
       </ion-item>
 
       <!-- Status -->
-      <ion-item class="rounded-item ion-margin-bottom" [disabled]="isViewOnly">
+      <ion-item class="rounded-item ion-margin-bottom" [disabled]="isViewOnly()">
         <ion-select 
           label="Status" 
           labelPlacement="floating" 
-          [(ngModel)]="schedule.status" 
+          [ngModel]="schedule().status"
+          (ngModelChange)="updateScheduleField('status', $event)"
           name="status" 
-          [disabled]="isViewOnly"
+          [disabled]="isViewOnly()"
           required>
           <ion-select-option value="Scheduled">Scheduled (Pending)</ion-select-option>
           <ion-select-option value="Notified">Guardian Notified via SMS</ion-select-option>
@@ -129,14 +136,14 @@
       </ion-item>
 
       <!-- Action Button (Back to Archive / Cancel) -->
-      <ion-button *ngIf="!isViewOnly" expand="block" type="submit" color="success" class="ion-margin-top save-btn">
+      <ion-button *ngIf="!isViewOnly()" expand="block" type="submit" color="success" class="ion-margin-top save-btn">
         <ion-icon name="calendar-outline" slot="start"></ion-icon>
-        {{ isEditMode ? 'UPDATE SCHEDULE' : 'SET SCHEDULE' }}
+        {{ isEditMode() ? 'UPDATE SCHEDULE' : 'SET SCHEDULE' }}
       </ion-button>
 
       <!-- Cancel / Back Button -->
-      <ion-button expand="block" fill="clear" color="medium" [routerLink]="isViewOnly ? '/archive-schedule' : '/admin-home'">
-        {{ isViewOnly ? 'BACK TO ARCHIVE' : 'CANCEL' }}
+      <ion-button expand="block" fill="clear" color="medium" [routerLink]="isViewOnly() ? '/archive-schedule' : '/admin-home'">
+        {{ isViewOnly() ? 'BACK TO ARCHIVE' : 'CANCEL' }}
       </ion-button>
 
     </form>

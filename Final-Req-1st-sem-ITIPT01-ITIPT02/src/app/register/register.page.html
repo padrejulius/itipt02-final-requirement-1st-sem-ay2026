@@ -13,13 +13,51 @@
     <!-- Register Form -->
     <form (ngSubmit)="onRegister()" class="register-form">
       <div class="input-group">
-        <ion-input [(ngModel)]="registrationData.fullName" name="fullName" class="custom-input" label="Full Name" label-placement="floating" fill="solid" required></ion-input>
+        <ion-input
+          [ngModel]="registrationData().fullName"
+          (ngModelChange)="updateField('fullName', $event)"
+          name="fullName"
+          class="custom-input"
+          label="Full Name"
+          label-placement="floating"
+          fill="solid"
+          required>
+        </ion-input>
 
-        <ion-input [(ngModel)]="registrationData.username" name="username" class="custom-input" label="Email or Username" label-placement="floating" fill="solid" required></ion-input>
+        <ion-input
+          [ngModel]="registrationData().username"
+          (ngModelChange)="updateField('username', $event)"
+          name="username"
+          class="custom-input"
+          label="Email or Username"
+          label-placement="floating"
+          fill="solid"
+          required>
+        </ion-input>
 
-        <ion-input [(ngModel)]="registrationData.password" name="password" class="custom-input" type="password" label="Password" label-placement="floating" fill="solid" required></ion-input>
+        <ion-input
+          [ngModel]="registrationData().password"
+          (ngModelChange)="updateField('password', $event)"
+          name="password"
+          class="custom-input"
+          type="password"
+          label="Password"
+          label-placement="floating"
+          fill="solid"
+          required>
+        </ion-input>
 
-        <ion-input [(ngModel)]="registrationData.confirmPassword" name="confirmPassword" class="custom-input" type="password" label="Confirm Password" label-placement="floating" fill="solid" required></ion-input>
+        <ion-input
+          [ngModel]="registrationData().confirmPassword"
+          (ngModelChange)="updateField('confirmPassword', $event)"
+          name="confirmPassword"
+          class="custom-input"
+          type="password"
+          label="Confirm Password"
+          label-placement="floating"
+          fill="solid"
+          required>
+        </ion-input>
       </div>
 
       <div class="button-group">
@@ -28,7 +66,7 @@
           Sign Up
         </ion-button>
         <ion-button type="button" expand="block" shape="round" fill="clear" color="medium" (click)="onCancel()" class="cancel-btn">
-          Cancel
+          Cancel / Back to Login
         </ion-button>
       </div>
     </form>

@@ -1,7 +1,8 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, signal, computed } from '@angular/core';
+import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonBackButton, IonCard, IonCardHeader, IonCardSubtitle, IonCardTitle, IonCardContent, IonItem, IonSelect, IonSelectOption, IonList, IonLabel, IonIcon, IonBadge, IonButton, IonSearchbar,ToastController} from '@ionic/angular';
+import { IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonBackButton, IonCard, IonCardHeader, IonCardSubtitle, IonCardTitle, IonCardContent, IonItem, IonSelect, IonSelectOption, IonList, IonLabel, IonIcon, IonBadge, IonButton, IonSearchbar, ToastController } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { personOutline, checkmarkCircle, timeOutline } from 'ionicons/icons';
 
@@ -25,10 +26,12 @@ interface ChildProfile {
   templateUrl: './vaccine.page.html',
   styleUrls: ['./vaccine.page.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule, IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonBackButton, IonCard, IonCardHeader, IonCardSubtitle,  IonCardTitle, IonCardContent, IonItem, IonSelect,  IonSelectOption, IonList, IonLabel, IonIcon, IonBadge, IonButton, IonSearchbar ]})
+  imports: [ CommonModule, FormsModule, IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonBackButton, IonCard, IonCardHeader, IonCardSubtitle, IonCardTitle, IonCardContent, IonItem, IonSelect, IonSelectOption, IonList, IonLabel, IonIcon, IonBadge, IonButton, IonSearchbar ] })
 
 export class VaccinePage implements OnInit {
-  
+  isViewOnly = signal<boolean>(false);
+  headerTitle = signal<string>('Vaccination');
+
   standardVaccineNames: string[] = [
     'BCG Vaccine',
     'Hepatitis B (Dose 1)',
@@ -38,12 +41,24 @@ export class VaccinePage implements OnInit {
     'Oral Polio Vaccine (Booster)'
   ];
 
-  childrenList: ChildProfile[] = [];
-  searchTerm: string = '';
-  filteredChildren: ChildProfile[] = [];
-  currentChild: ChildProfile | null = null;
+  childrenList = signal<ChildProfile[]>([]);
+  searchTerm = signal<string>('');
+  currentChild = signal<ChildProfile | null>(null);
+
+  displayedChildren = computed(() => {
+    const term = this.searchTerm().trim().toLowerCase();
+    const list = this.childrenList();
+    if (!term) {
+      return list;
+    }
+    return list.filter(child =>
+      String(child.name).toLowerCase().includes(term) ||
+      String(child.purok).toLowerCase().includes(term)
+    );
+  });
 
   constructor(
+    private router: Router,
     private cdr: ChangeDetectorRef,
     private toastController: ToastController
   ) {
@@ -55,7 +70,86 @@ export class VaccinePage implements OnInit {
   }
 
   ngOnInit() {
+    const navigation = this.router.getCurrentNavigation();
+    const navState = navigation?.extras?.state || history.state;
+
+    if (navState && navState['isViewOnly']) {
+      this.isViewOnly.set(true);
+      this.headerTitle.set('Immunization Record View');
+
+      const targetId = navState['childId'] ? Number(navState['childId']) : null;
+      if (targetId) {
+        this.loadReadOnlyChildRecord(targetId, navState['childData']);
+      }
+      return;
+    }
+
     this.fetchChildrenFromDatabase();
+  }
+
+  private loadReadOnlyChildRecord(childId: number, fallbackData?: any) {
+    const baseProfile: ChildProfile = {
+      id: childId,
+      name: fallbackData?.fullName || fallbackData?.name || 'Beneficiary',
+      age: fallbackData?.ageMonths ?? fallbackData?.age ?? 0,
+      purok: fallbackData?.purok || '',
+      overallStatus: 'Fully Immunized',
+      vaccines: this.standardVaccineNames.map(name => ({
+        vaccineName: name,
+        completed: false,
+        dateGiven: undefined
+      }))
+    };
+
+    this.currentChild.set(baseProfile);
+    this.cdr.detectChanges();
+
+    fetch(`http://localhost:8000/api/children/${childId}`)
+      .then(res => res.json())
+      .then(res => {
+        if (res && res.success && res.data) {
+          const d = res.data;
+          const updatedProfile: ChildProfile = {
+            ...(this.currentChild() || baseProfile),
+            id: d.id,
+            name: d.name,
+            age: d.age,
+            purok: d.purok,
+            overallStatus: d.overall_status && d.overall_status.trim() !== '' ? d.overall_status : 'Fully Immunized'
+          };
+          this.currentChild.set(updatedProfile);
+          this.cdr.detectChanges();
+        }
+      })
+      .catch(err => console.error('Error fetching child profile for view-only:', err));
+
+    fetch(`http://localhost:8000/api/vaccinations/${childId}`)
+      .then(res => res.json())
+      .then(response => {
+        const active = this.currentChild();
+        if (active && response && response.success && Array.isArray(response.data)) {
+          const updatedVaccines = active.vaccines.map(v => {
+            const found = response.data.find(
+              (dbVac: any) =>
+                String(dbVac.vaccine_name || '').trim().toLowerCase() === v.vaccineName.trim().toLowerCase()
+            );
+            if (found) {
+              return {
+                ...v,
+                completed: found.status === 'Given',
+                dateGiven: found.date_given || undefined
+              };
+            }
+            return v;
+          });
+          this.currentChild.set({
+            ...active,
+            vaccines: updatedVaccines
+          });
+          this.cdr.detectChanges();
+        }
+      })
+      .catch(err => console.error('Error fetching vaccinations for view-only:', err));
   }
 
   fetchChildrenFromDatabase() {
@@ -63,7 +157,7 @@ export class VaccinePage implements OnInit {
       .then(res => res.json())
       .then(response => {
         if (response.success && response.data) {
-          this.childrenList = response.data.map((child: any) => ({
+          const mapped: ChildProfile[] = response.data.map((child: any) => ({
             id: child.id,
             name: child.name,
             age: child.age,
@@ -75,50 +169,57 @@ export class VaccinePage implements OnInit {
               dateGiven: undefined
             }))
           }));
-          this.filteredChildren = [];
+          this.childrenList.set(mapped);
           this.cdr.detectChanges();
         }
       })
       .catch(err => console.error('Error fetching children from database:', err));
   }
 
-  filterChildren() {
-    const term = this.searchTerm.trim().toLowerCase();
-    
-    if (term) {
-      this.currentChild = null;
+  onSearchChange(value: string) {
+    this.searchTerm.set(value);
+    if (value.trim()) {
+      this.currentChild.set(null);
     }
-
-    if (!term) {
-      this.filteredChildren = [...this.childrenList];
-      return;
-    }
-
-    this.filteredChildren = this.childrenList.filter(child =>
-      String(child.name).toLowerCase().includes(term) || String(child.purok).toLowerCase().includes(term)
-    );
   }
-  
-  selectChild(child: ChildProfile) {
-    child.vaccines.forEach(v => {
-      v.completed = false;
-      v.dateGiven = undefined;
-    });
 
-    this.currentChild = child;
-    this.searchTerm = '';
-    this.filteredChildren = [];
-    
+  selectChild(child: ChildProfile) {
+    const resetVaccines = child.vaccines.map(v => ({
+      ...v,
+      completed: false,
+      dateGiven: undefined
+    }));
+
+    const selected: ChildProfile = {
+      ...child,
+      vaccines: resetVaccines
+    };
+
+    this.currentChild.set(selected);
+    this.searchTerm.set('');
+    this.cdr.detectChanges();
+
     fetch(`http://localhost:8000/api/vaccinations/${child.id}`)
       .then(res => res.json())
       .then(response => {
         if (response.success && response.data) {
-          response.data.forEach((dbVac: any) => {
-            const found = child.vaccines.find(v => v.vaccineName.trim().toLowerCase() === dbVac.vaccine_name.trim().toLowerCase());
+          const hydratedVaccines = selected.vaccines.map(v => {
+            const found = response.data.find(
+              (dbVac: any) =>
+                String(dbVac.vaccine_name || '').trim().toLowerCase() === v.vaccineName.trim().toLowerCase()
+            );
             if (found) {
-              found.completed = (dbVac.status === 'Given');
-              found.dateGiven = dbVac.date_given || undefined;
+              return {
+                ...v,
+                completed: found.status === 'Given',
+                dateGiven: found.date_given || undefined
+              };
             }
+            return v;
+          });
+          this.currentChild.set({
+            ...selected,
+            vaccines: hydratedVaccines
           });
           this.cdr.detectChanges();
         }
@@ -126,20 +227,26 @@ export class VaccinePage implements OnInit {
       .catch(err => console.error('Error fetching child vaccinations:', err));
   }
 
+  updateOverallStatus(status: string) {
+    if (this.isViewOnly()) return;
+    const active = this.currentChild();
+    if (!active) return;
+    this.currentChild.set({
+      ...active,
+      overallStatus: status
+    });
+  }
+
   toggleVaccine(item: VaccineRecord) {
-    if (!this.currentChild) return;
+    if (this.isViewOnly()) return;
+    const active = this.currentChild();
+    if (!active) return;
 
     item.completed = !item.completed;
     const currentDateTime = item.completed ? new Date().toISOString().slice(0, 19).replace('T', ' ') : '';
     item.dateGiven = item.completed ? currentDateTime : undefined;
 
     this.checkAutoStatus();
-  }
-
-  updateStatus() {
-    if (this.currentChild) {
-      console.log('Overall Status changed to:', this.currentChild.overallStatus);
-    }
   }
 
   async presentToast(message: string, color: string = 'success') {
@@ -154,13 +261,15 @@ export class VaccinePage implements OnInit {
     await toast.present();
   }
 
-  saveOverallStatus() {
-    if (!this.currentChild) return;
+  async saveOverallStatus() {
+    if (this.isViewOnly()) return;
+    const active = this.currentChild();
+    if (!active) return;
 
     const payload = {
-      child_id: this.currentChild.id,
-      overall_status: this.currentChild.overallStatus,
-      vaccines: this.currentChild.vaccines.map(v => ({
+      child_id: active.id,
+      overall_status: active.overallStatus,
+      vaccines: active.vaccines.map(v => ({
         vaccine_name: v.vaccineName,
         status: v.completed ? 'Given' : 'Pending',
         date_given: v.dateGiven || null
@@ -172,25 +281,51 @@ export class VaccinePage implements OnInit {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     })
-    .then(res => res.json())
-    .then(async data => {
-      console.log("Full record saved successfully:", data);
-      await this.presentToast('Overall status and vaccination records successfully saved!');
-    })
-    .catch(async err => {
-      console.error("Error saving full record:", err);
-      await this.presentToast('Failed to save vaccination records.', 'danger');
-    });
+      .then(res => res.json())
+      .then(async data => {
+        console.log('Full record saved successfully:', data);
+
+        const toast = await this.toastController.create({
+          message: 'Overall status and vaccination records successfully saved!',
+          duration: 3000,
+          position: 'bottom',
+          color: 'success',
+          mode: 'ios',
+          cssClass: 'custom-toast',
+          buttons: [
+            {
+              text: 'View',
+              role: 'info',
+              handler: () => {
+                this.router.navigate(['/fully-immunized']);
+              }
+            }
+          ]
+        });
+        await toast.present();
+      })
+      .catch(async err => {
+        console.error('Error saving full record:', err);
+        await this.presentToast('Failed to save vaccination records.', 'danger');
+      });
   }
 
   checkAutoStatus() {
-    if (!this.currentChild) return;
-    const allDone = this.currentChild.vaccines.every(v => v.completed);
+    const active = this.currentChild();
+    if (!active) return;
+
+    const allDone = active.vaccines.every(v => v.completed);
+    let nextStatus = active.overallStatus;
     if (allDone) {
-      this.currentChild.overallStatus = 'Fully Immunized';
+      nextStatus = 'Fully Immunized';
     } else {
-      const anyDone = this.currentChild.vaccines.some(v => v.completed);
-      this.currentChild.overallStatus = anyDone ? 'Partially Immunized' : 'Unvaccinated';
+      const anyDone = active.vaccines.some(v => v.completed);
+      nextStatus = anyDone ? 'Partially Immunized' : 'Unvaccinated';
     }
+
+    this.currentChild.set({
+      ...active,
+      overallStatus: nextStatus
+    });
   }
 }

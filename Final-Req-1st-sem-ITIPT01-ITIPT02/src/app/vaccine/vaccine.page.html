@@ -1,55 +1,63 @@
 <ion-header>
   <ion-toolbar color="success">
     <ion-buttons slot="start">
-      <ion-back-button defaultHref="/admin-home"></ion-back-button>
+      <ion-back-button [defaultHref]="isViewOnly() ? '/fully-immunized' : '/admin-home'"></ion-back-button>
     </ion-buttons>
-    <ion-title>Vaccination</ion-title>
+    <ion-title>{{ headerTitle() }}</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content class="ion-padding">
 
-  <div class="search" style="margin-bottom: 15px;">
-    <ion-searchbar placeholder="Search child name" [(ngModel)]="searchTerm" (ionInput)="filterChildren()" animated="true" style="--border-radius: 15px;"> </ion-searchbar>
+  <div class="search" style="margin-bottom: 15px;" *ngIf="!isViewOnly()">
+    <ion-searchbar 
+      placeholder="Search child name" 
+      [ngModel]="searchTerm()"
+      (ngModelChange)="onSearchChange($event)"
+      animated="true" 
+      style="--border-radius: 15px;">
+    </ion-searchbar>
   </div>
 
-  <!-- Live Search Results / Default List -->
-  <ion-list lines="full" class="search-results-list" *ngIf="!currentChild">
-    <ion-item *ngFor="let child of (searchTerm.trim() ? filteredChildren : childrenList)" button (click)="selectChild(child)">
+  <ion-list lines="full" class="search-results-list" *ngIf="currentChild() === null && !isViewOnly()">
+    <ion-item *ngFor="let child of displayedChildren()" button (click)="selectChild(child)">
       <ion-icon name="person-outline" slot="start" color="success"></ion-icon>
       <ion-label>
         <h2>{{ child.name }}</h2>
-        <p>{{ child.purok }} • Age: {{ child.age }} mos</p>
+        <p>{{ child.purok }} • Age: {{ child.age }} years old</p>
       </ion-label>
     </ion-item>
   </ion-list>
 
-  <ion-card class="ion-no-margin ion-margin-bottom" *ngIf="currentChild">
+  <ion-card class="ion-no-margin ion-margin-bottom" *ngIf="currentChild() !== null">
     <ion-card-header>
-      <ion-card-subtitle>BENEFICIARY PROFILE</ion-card-subtitle>
-      <ion-card-title>{{ currentChild.name }}</ion-card-title>
+      <ion-card-subtitle>{{ isViewOnly() ? 'PROTECTED BENEFICIARY RECORD' : 'BENEFICIARY PROFILE' }}</ion-card-subtitle>
+      <ion-card-title>{{ currentChild()!.name }}</ion-card-title>
     </ion-card-header>
     <ion-card-content>
-      <p><strong>Age:</strong> {{ currentChild.age }} months</p>
-      <p><strong>Purok:</strong> {{ currentChild.purok }}</p>
+      <p><strong>Age:</strong> {{ currentChild()!.age }} years old</p>
+      <p><strong>Purok:</strong> {{ currentChild()!.purok }}</p>
       
-      <!-- Overall Status Row -->
       <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; margin-bottom: 15px;">
         <strong>Overall Status:</strong> 
-        <ion-badge [color]="currentChild.overallStatus === 'Fully Immunized' ? 'success' : (currentChild.overallStatus === 'Partially Immunized' ? 'warning' : 'medium')">
-          {{ currentChild.overallStatus }}
+        <ion-badge [color]="currentChild()!.overallStatus === 'Fully Immunized' ? 'success' : (currentChild()!.overallStatus === 'Partially Immunized' ? 'warning' : 'medium')">
+          {{ currentChild()!.overallStatus }}
         </ion-badge>
       </div>
 
-      <ion-button expand="block" color="success" (click)="saveOverallStatus()">
+      <ion-button *ngIf="!isViewOnly()" expand="block" color="success" (click)="saveOverallStatus()">
         Save Overall Status
       </ion-button>
     </ion-card-content>
   </ion-card>
 
-  <!-- Update Overall Immunization Status Dropdown -->
-  <ion-item class="ion-margin-bottom" *ngIf="currentChild">
-    <ion-select label="Update Immunization Status" labelPlacement="stacked" placeholder="Select" [(ngModel)]="currentChild.overallStatus">
+  <ion-item class="ion-margin-bottom" *ngIf="currentChild() !== null && !isViewOnly()">
+    <ion-select 
+      label="Update Immunization Status" 
+      labelPlacement="stacked" 
+      placeholder="Select"
+      [ngModel]="currentChild()!.overallStatus"
+      (ngModelChange)="updateOverallStatus($event)">
       <ion-select-option value="Select">Select</ion-select-option>
       <ion-select-option value="Unvaccinated">Unvaccinated</ion-select-option>
       <ion-select-option value="Partially Immunized">Partially Immunized</ion-select-option>
@@ -57,12 +65,14 @@
     </ion-select>
   </ion-item>
 
-  <!-- Vaccine Records List -->
-  <h3 class="ion-padding-start" *ngIf="currentChild">Vaccine Records & Status</h3>
+  <h3 class="ion-padding-start" *ngIf="currentChild() !== null">Vaccine Records & Status</h3>
 
-  <ion-list lines="full" *ngIf="currentChild">
-    <ion-item *ngFor="let item of currentChild.vaccines">
-      <ion-icon [name]="item.completed ? 'checkmark-circle' : 'time-outline'" [color]="item.completed ? 'success' : 'primary'" slot="start">
+  <ion-list lines="full" *ngIf="currentChild() !== null">
+    <ion-item *ngFor="let item of currentChild()!.vaccines">
+      <ion-icon 
+        [name]="item.completed ? 'checkmark-circle' : 'time-outline'" 
+        [color]="item.completed ? 'success' : 'primary'" 
+        slot="start">
       </ion-icon>
       
       <ion-label>
@@ -70,7 +80,14 @@
         <p>{{ item.completed ? 'Given on: ' + item.dateGiven : 'Status: Pending' }}</p>
       </ion-label>
 
-      <ion-button  slot="end" [color]="item.completed ? 'medium' : 'success'" size="small" (click)="toggleVaccine(item)"> {{ item.completed ? 'Given' : 'Mark Done' }} </ion-button>
+      <ion-button 
+        slot="end" 
+        [color]="item.completed ? 'medium' : 'success'" 
+        size="small" 
+        [disabled]="isViewOnly()"
+        (click)="!isViewOnly() && toggleVaccine(item)">
+        {{ item.completed ? 'Given' : 'Mark Done' }}
+      </ion-button>
     </ion-item>
   </ion-list>
 
